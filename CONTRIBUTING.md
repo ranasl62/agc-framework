@@ -1,23 +1,6 @@
 # Contributing
 
-## Build
+Run **`mvn clean verify`** before a PR (includes ArchUnit in `agc-architecture-tests`).  
+Keep **`agc-core`** Spring-free; auto-config only in **`agc-spring-boot-autoconfigure`**; **`McpToolExecutor`** stays in **`com.framework.agent.mcp.internal`**.
 
-```bash
-mvn clean verify
-```
-
-Run the demo:
-
-```bash
-mvn -pl agc-demo-app -am spring-boot:run
-```
-
-## Pull requests
-
-- Keep changes focused on a single concern.
-- Run **`mvn verify`** before opening a PR (includes ArchUnit rules in `agc-architecture-tests`).
-- Follow existing module boundaries: **`agc-core`** stays Spring-free; auto-configuration belongs in **`agc-spring-boot-autoconfigure`**; **`McpToolExecutor`** remains in **`com.framework.agent.mcp.internal`**.
-
-## License
-
-By contributing, you agree that your contributions are licensed under the same terms as the project ([LICENSE](LICENSE), Apache License 2.0).
+By contributing you license your changes under the [LICENSE](LICENSE) (Apache-2.0).

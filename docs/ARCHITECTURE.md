@@ -1,12 +1,10 @@
-# AGC — architecture (implementation)
+# AGC — architecture & reference
 
-This document describes **how the repository is structured today**: Maven modules, Java packages, Spring Boot auto-configuration, and the request path through governance.
-
-Design goals (single gateway, policy → guardrails, append-only audit) are summarized in this file and in [RUNBOOK.md](RUNBOOK.md).
+How the repo is structured: modules, auto-configuration order, governance behavior, and how to run the demo.
 
 ---
 
-## Module dependency graph
+## Module graph
 
 ```mermaid
 flowchart BT
@@ -49,73 +47,113 @@ flowchart BT
   aud --> core
 ```
 
-- **agc-spring-boot-starter** depends **only** on **`agc-spring-boot-autoconfigure`**, which pulls feature JARs and registers every `@AutoConfiguration`.
-- **`McpToolExecutor`** is **`com.framework.agent.mcp.internal`** — not part of the public `agc-core` API; ArchUnit enforces that only the gateway (and Spring autoconfigure wiring) may use it.
-- **agc-api** is **optional** at runtime (`AgcWebAutoConfiguration` is `@ConditionalOnClass` for REST controllers).
+- **Starter** → **`agc-spring-boot-autoconfigure`** only; that module pulls feature JARs and registers all `@AutoConfiguration` classes.
+- **`McpToolExecutor`** is **`com.framework.agent.mcp.internal`** (not public `agc-core` API). ArchUnit enforces gateway-only execution paths.
 
 ---
 
-## Package map
+## Packages (summary)
 
 | Area | Package | Module |
 |------|---------|--------|
-| Domain types and SPIs (`GovernanceDecision`, `ToolInvocationGateway`, `AuditRecorder`, …) | `com.framework.agent.core` | **agc-core** (no Spring) |
-| JPA entities, Flyway, sequence service | `com.framework.agent.storage` | agc-storage |
-| `JpaAuditRecorder`, audit properties | `com.framework.agent.audit` | agc-audit |
-| Role to tools policy | `com.framework.agent.policy` | agc-policy |
-| Guardrail rules | `com.framework.agent.guardrail` | agc-guardrail |
-| Pipeline, gateway | `com.framework.agent.mcp` | agc-mcp |
-| MCP adapter SPI (internal) | `com.framework.agent.mcp.internal` | agc-mcp |
-| Spring Boot wiring | `com.framework.agent.autoconfigure` | agc-spring-boot-autoconfigure |
-| Orchestrator, stub LLM | `com.framework.agent.orchestrator` | agc-orchestrator |
-| Observability placeholder | `com.framework.agent.observability` | agc-observability |
-| REST controllers | `com.framework.agent.api.web` | agc-api |
+| Domain + gateway SPI | `com.framework.agent.core` | **agc-core** (no Spring) |
+| JPA / Flyway | `com.framework.agent.storage` | agc-storage |
+| Audit | `com.framework.agent.audit` | agc-audit |
+| Policy / guardrails | `com.framework.agent.policy`, `..guardrail` | agc-policy, agc-guardrail |
+| Pipeline + gateway | `com.framework.agent.mcp` | agc-mcp |
+| MCP adapter SPI | `com.framework.agent.mcp.internal` | agc-mcp |
+| Spring wiring | `com.framework.agent.autoconfigure` | agc-spring-boot-autoconfigure |
+| REST (optional) | `com.framework.agent.api.web` | agc-api |
 
 ---
 
-## Auto-configuration registration
+## Auto-configuration order
 
-All AGC `@AutoConfiguration` classes live in **`agc-spring-boot-autoconfigure`** under `com.framework.agent.autoconfigure`, listed in:
+All live in **`agc-spring-boot-autoconfigure`**, file:
 
-`agc-spring-boot-autoconfigure/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`
+`META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`
 
-**Order (each `@AutoConfigureAfter` the previous):**
-
-1. `AgcStorageAutoConfiguration` — after `DataSourceAutoConfiguration`
-2. `AgcAuditAutoConfiguration` — after storage
-3. `AgcPolicyAutoConfiguration` — after audit
-4. `AgcGuardrailAutoConfiguration` — after policy
-5. `AgcMcpAutoConfiguration` — after guardrail and audit
-6. `AgcOrchestratorAutoConfiguration` — after MCP
-7. `AgcObservabilityAutoConfiguration` — after orchestrator (conditional on `MeterRegistry`)
-8. `AgcWebAutoConfiguration` — after orchestrator (conditional on REST controllers class)
-
-Feature modules **do not** ship their own `AutoConfiguration.imports` files.
+Chain: **Storage** (after `DataSourceAutoConfiguration`) → **Audit** → **Policy** → **Guardrail** → **MCP** → **Orchestrator** → **Observability** (if `MeterRegistry`) → **Web** (if REST classes on classpath).
 
 ---
 
-## Governance hardening (runtime)
+## Governance (runtime)
 
-- **`DefaultToolInvocationGateway`** validates **non-blank `traceId` and `toolName`**, requires a **non-null** pipeline decision, persists **GOVERNANCE_DECISION** before branching, and uses **`decision.type() == DENY`** before any tool call.
-- **Audit failures** on the governed path throw **`GovernedPathAuditException`** (fail-closed). Secondary **`SYSTEM_ERROR`** audit after a tool failure uses **`agc.audit.strict-secondary-audit`** (default `true`) to fail closed or relax only that write.
-- **`DefaultGovernancePipeline`** maps evaluator exceptions to **DENY** (`GOVERNANCE_EVALUATION_FAILED`) and treats null policy decisions as **DENY** (`GOVERNANCE_CONTRACT_VIOLATION`).
-
----
-
-## Runtime request path (REST demo)
-
-1. `POST /agent/execute` calls `AgentOrchestrator` (`agc-orchestrator`).
-2. The orchestrator invokes **`ToolInvocationGateway`** (`agc-mcp`).
-3. The gateway runs **`GovernancePipeline`**: **policy** then **guardrails**; **`DecisionType.DENY`** ends without calling **`McpToolExecutor`**.
-4. **ALLOW** / **WARN** leads to internal tool execution then **`AuditRecorder`** persisting audit rows via **`agc-storage`**.
-5. `GET /audit/{traceId}` reads ordered events from the repository.
+- Gateway requires **non-blank `traceId` and `toolName`**; pipeline returns a **non-null** decision; **`DecisionType.DENY`** → no tool execution.
+- Failed required audit writes → **`GovernedPathAuditException`** (fail-closed). **`agc.audit.strict-secondary-audit`** (default `true`) controls strict handling after tool errors.
+- Evaluator exceptions → **DENY** with stable reason codes.
 
 ---
 
-## Consumer integration
+## Request path
 
-- **Headless (library):** depend on `agc-spring-boot-starter` only; call `ToolInvocationGateway` or orchestrator beans from your code.
-- **REST:** add `agc-api`.
-- **Identity:** supply `principalId` and `roles` from your security layer; the demo accepts JSON fields for local testing only.
+`AgentOrchestrator` → **`ToolInvocationGateway`** → **policy → guardrails** → (if not DENY) internal executor → **`AuditRecorder`**.
 
-See [CHEAT_SHEET.md](CHEAT_SHEET.md) for properties and curl examples.
+---
+
+## Build & run
+
+| Goal | Command |
+|------|---------|
+| Build + tests | `mvn clean verify` |
+| Demo (from repo root) | `mvn -pl agc-demo-app -am spring-boot:run` |
+
+Use **`-am`** so sibling modules build in the reactor; otherwise install snapshots with `mvn install` from root first.
+
+---
+
+## Configuration (`agc.*`)
+
+| Key | Role |
+|-----|------|
+| `agc.policy.roles` | Role → allowed tools (`"*"` = all) |
+| `agc.guardrails.rules` | `id`, `toolName`, `action` (`DENY` / `WARN`) |
+| `agc.llm.planned-tool-name` | Stub LLM default tool |
+| `agc.audit.max-payload-chars` | Bound stored payload text |
+| `agc.audit.strict-secondary-audit` | Default `true`: fail if `SYSTEM_ERROR` audit cannot be written after tool failure |
+
+Example: `agc-demo-app/src/main/resources/application.yml`.
+
+---
+
+## HTTP (demo, port 8080)
+
+```bash
+curl -s -X POST http://localhost:8080/agent/execute \
+  -H 'Content-Type: application/json' \
+  -d '{"principalId":"u1","roles":["user"],"message":"hello"}'
+```
+
+- **`GET /audit/{traceId}`** — audit trail for that trace.
+- **Demo UI:** `GET /` · **`GET /demo/scenarios`** · **`POST /demo/run`** with `{"scenario":"<id>"}`.
+- Stub LLM: **`[[tool:name]]`** in the message, or scenario overrides in `/demo/run`.
+
+---
+
+## Troubleshooting
+
+| Symptom | Check |
+|---------|--------|
+| Build can’t find modules | `mvn -pl agc-demo-app -am …` or `mvn install` from root |
+| 403 with `reasonCode` | Policy roles vs tool; guardrail rules |
+| Audit / DB errors | Datasource, Flyway, DB reachability |
+| Invalid auto-config at startup | Clean build; autoconfigure lives only in **`agc-spring-boot-autoconfigure`** |
+
+---
+
+## Integration notes
+
+- Add **`agc-api`** for REST. For headless use, **`agc-spring-boot-starter`** only.
+- In production, bind **identity** from your auth layer, not untrusted JSON fields.
+
+Dependency:
+
+```xml
+<dependency>
+  <groupId>com.framework.agent</groupId>
+  <artifactId>agc-spring-boot-starter</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+</dependency>
+```
+
+(Publish to Maven Central / GitHub Packages is separate from cloning and `mvn install`.)
