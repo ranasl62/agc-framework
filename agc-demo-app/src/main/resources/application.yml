@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: agc-demo
+  datasource:
+    url: jdbc:h2:mem:agc;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+agc:
+  policy:
+    roles:
+      user:
+        - search
+        - read
+      admin:
+        - "*"
+  guardrails:
+    rules:
+      - id: block-payment
+        toolName: payment_api
+        action: DENY
+  llm:
+    planned-tool-name: search
+  audit:
+    max-payload-chars: 4000
+
+logging:
+  level:
+    com.framework.agent: INFO

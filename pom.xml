@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.framework.agent</groupId>
+    <artifactId>agc-framework</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>AGC Framework</name>
+    <description>Agent Governance &amp; Control — multi-module framework</description>
+
+    <modules>
+        <module>agc-core</module>
+        <module>agc-storage</module>
+        <module>agc-audit</module>
+        <module>agc-policy</module>
+        <module>agc-guardrail</module>
+        <module>agc-mcp</module>
+        <module>agc-orchestrator</module>
+        <module>agc-observability</module>
+        <module>agc-api</module>
+        <module>agc-spring-boot-starter</module>
+        <module>agc-demo-app</module>
+    </modules>
+
+    <properties>
+        <java.version>17</java.version>
+        <spring-boot.version>3.2.5</spring-boot.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Avoid spring-boot:run on aggregator / library modules (no main). Demo sets false. -->
+        <spring-boot.run.skip>true</spring-boot.run.skip>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.framework.agent</groupId>
+                <artifactId>agc-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.framework.agent</groupId>
+                <artifactId>agc-storage</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.framework.agent</groupId>
+                <artifactId>agc-audit</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.framework.agent</groupId>
+                <artifactId>agc-policy</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.framework.agent</groupId>
+                <artifactId>agc-guardrail</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.framework.agent</groupId>
+                <artifactId>agc-mcp</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.framework.agent</groupId>
+                <artifactId>agc-orchestrator</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.framework.agent</groupId>
+                <artifactId>agc-observability</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.framework.agent</groupId>
+                <artifactId>agc-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.framework.agent</groupId>
+                <artifactId>agc-spring-boot-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.12.1</version>
+                    <configuration>
+                        <release>${java.version}</release>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.2.5</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

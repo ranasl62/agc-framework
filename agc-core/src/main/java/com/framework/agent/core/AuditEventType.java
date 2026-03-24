@@ -1,0 +1,11 @@
+package com.framework.agent.core;
+
+public enum AuditEventType {
+    REQUEST_RECEIVED,
+    LLM_INVOCATION,
+    GOVERNANCE_DECISION,
+    TOOL_INVOCATION_REQUEST,
+    TOOL_INVOCATION_RESPONSE,
+    OUTPUT_COMPLETED,
+    SYSTEM_ERROR
+}

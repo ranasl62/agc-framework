@@ -1,0 +1,13 @@
+---
+description: AGC — modules agc-core (pure Java), gateway in agc-mcp, audit in agc-audit+storage, policy→guardrails order
+globs: **/*.{java,xml,yml,yaml}
+alwaysApply: false
+---
+
+# AGC conventions
+
+- **Layout:** [README.md](README.md) — `agc-core` = `com.framework.agent.core` only (no Spring). `agc-spring-boot-starter` = main user dependency.
+- **Tool path:** Governed calls only via **`ToolInvocationGateway`** (`agc-mcp`).
+- **Pipeline:** Policy (`agc-policy`) then guardrails (`agc-guardrail`); **DENY** → no **`McpToolExecutor`**.
+- **Audit:** `agc-audit` + `agc-storage`; append-only; no silent drops (metrics on failure).
+- **Spec:** [docs/PRODUCT_DEVELOPMENT_PLAN.md](docs/PRODUCT_DEVELOPMENT_PLAN.md) · **layout:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
