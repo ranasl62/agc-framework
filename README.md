@@ -84,9 +84,9 @@ Licensed under the **Apache License 2.0** — see [LICENSE](LICENSE).
 
 To host the code publicly (for example on GitHub):
 
-1. Initialize git if needed: `git init`
-2. Commit: `git add -A && git commit -m "Initial commit"`
-3. Create a **public** repository on your host, add the remote, push: `git remote add origin <url>` then `git push -u origin main`
+1. If you do not have a repo yet: `git init -b main`, then `git add -A` and commit.
+2. Set your identity once: `git config user.name "Your Name"` and `git config user.email "you@example.com"` (then `git commit --amend --reset-author --no-edit` on the first commit if you used a placeholder author).
+3. Create a **public** repository on GitHub (or GitLab), add the remote, push: `git remote add origin <url>` then `git push -u origin main`
 
 CI (`.github/workflows/ci.yml`) runs `mvn verify` on pushes and pull requests.
 
