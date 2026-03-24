@@ -1,5 +1,5 @@
 /**
- * Dependency aggregator: transitively pulls all AGC runtime modules.
- * Auto-configuration is registered from each submodule JAR via {@code META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports}.
+ * Starter POM: depends only on {@code agc-spring-boot-autoconfigure}.
+ * All {@code @AutoConfiguration} classes live in that module with enforced ordering.
  */
 package com.framework.agent.starter;

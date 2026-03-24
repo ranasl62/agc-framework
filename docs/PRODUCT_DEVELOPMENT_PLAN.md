@@ -131,6 +131,7 @@ public interface GovernancePipeline {
     GovernanceDecision evaluatePreInvocation(ToolInvocationContext ctx);
 }
 
+/** Implemented in agc-mcp under {@code com.framework.agent.mcp.internal}; not a public agc-core type. */
 public interface McpToolExecutor {
     ToolInvocationResult execute(ToolInvocationContext ctx) throws ToolExecutionException;
 }
@@ -261,7 +262,7 @@ public interface AuditRecorder {
 **Deliverables**
 
 - Maven parent + modules: **`agc-core`** (pure Java, `com.framework.agent.core`), **`agc-spring-boot-starter`** (aggregator POM), feature jars (`agc-storage`, `agc-audit`, `agc-policy`, `agc-guardrail`, `agc-mcp`, `agc-orchestrator`, `agc-observability`), optional **`agc-api`**, **`agc-demo-app`**.
-- Auto-configuration: each feature module registers `@AutoConfiguration` via `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` (no orphan imports in the starter).
+- Auto-configuration: single module **`agc-spring-boot-autoconfigure`** registers all `@AutoConfiguration` classes via one `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`; **`agc-spring-boot-starter`** is an aggregator only.
 - Dependencies: Web, Data JPA, Flyway, Micrometer as needed per module; **CI** runs `mvn verify` on push/PR.
 - Implementation map: [ARCHITECTURE.md](ARCHITECTURE.md).
 - Document **unsupported**: direct MCP calls for governed tools.

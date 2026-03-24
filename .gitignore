@@ -1,13 +1,55 @@
+# Maven
 target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
 .idea/
 *.iml
+*.ipr
+*.iws
 .classpath
+.factorypath
 .project
 .settings/
 .vscode/
-*.log
+*.code-workspace
+
+# OS
 .DS_Store
 Thumbs.db
 *.swp
 *.orig
 *.bak
+*~
+
+# Logs / temp
+*.log
+hs_err_pid*
+replay_pid*
+
+# Local env & secrets (never commit)
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.jks
+application-local.yml
+application-local.yaml
+application-local.properties
+secrets/
+
+# Spring / H2 local files (if used outside demo)
+*.db
+*.trace.db
+
+# Node (if you add frontend tooling later)
+node_modules/

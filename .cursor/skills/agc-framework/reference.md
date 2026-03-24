@@ -19,7 +19,9 @@ Full detail: [docs/PRODUCT_DEVELOPMENT_PLAN.md](../../../docs/PRODUCT_DEVELOPMEN
 | Orchestrator + stub LLM | **agc-orchestrator** |
 | Metrics / OTel hooks | **agc-observability** |
 | REST | **agc-api** (`com.framework.agent.api.web`) |
-| User dependency | **agc-spring-boot-starter** |
+| Spring Boot wiring | **agc-spring-boot-autoconfigure** (`com.framework.agent.autoconfigure`) |
+| User dependency | **agc-spring-boot-starter** (aggregator → autoconfigure) |
+| ArchUnit | **agc-architecture-tests** |
 | Sample | **agc-demo-app** |
 
 ## Phases 0–11

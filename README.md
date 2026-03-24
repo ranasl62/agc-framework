@@ -11,11 +11,13 @@ Spring Boot framework for governed agent tool execution, append-only audit, and 
 | **agc-audit** | `JpaAuditRecorder`, payload redaction, `agc.audit.*` properties |
 | **agc-policy** | Role → allowed tools (`agc.policy.roles`) |
 | **agc-guardrail** | Typed rules (`agc.guardrails.rules`) |
-| **agc-mcp** | `DefaultGovernancePipeline`, `ToolInvocationGateway`, `McpToolExecutor` stub |
+| **agc-mcp** | `DefaultGovernancePipeline`, `ToolInvocationGateway`; `McpToolExecutor` lives in **`com.framework.agent.mcp.internal`** (gateway-only) |
 | **agc-orchestrator** | `AgentOrchestrator`, stub LLM (`agc.llm.*`) |
-| **agc-observability** | Micrometer tags (extend for OpenTelemetry) |
+| **agc-observability** | Extension / package placeholder; Micrometer wiring is in autoconfigure |
 | **agc-api** | REST: `POST /agent/execute`, `GET /audit/{traceId}` |
-| **agc-spring-boot-starter** | **Single dependency for users** (transitive modules above; **no** REST unless you add `agc-api`) |
+| **agc-spring-boot-autoconfigure** | All `@AutoConfiguration` classes + `META-INF/.../AutoConfiguration.imports` (ordered: Storage→Audit→Policy→Guardrail→MCP→Orchestrator→Observability→Web) |
+| **agc-spring-boot-starter** | **Aggregator only** — depends on `agc-spring-boot-autoconfigure` |
+| **agc-architecture-tests** | ArchUnit rules (no `mcp.internal` leakage; only gateway calls executor) |
 | **agc-demo-app** | Runnable sample: starter + `agc-api` + H2 |
 
 ## Build
@@ -76,17 +78,27 @@ curl -s -X POST http://localhost:8080/agent/execute \
 
 Then `GET /audit/{traceId}` using the `traceId` from the JSON response. Details: [docs/CHEAT_SHEET.md](docs/CHEAT_SHEET.md).
 
+### Demo UI and scenarios (`agc-demo-app`)
+
+- **Browser:** [http://localhost:8080/](http://localhost:8080/) — static page that loads `GET /demo/scenarios` and runs `POST /demo/run` for each built-in case (allow, policy DENY, guardrail DENY, WARN + success).
+- **API:** `GET /demo/scenarios`, `POST /demo/run` with body `{"scenario":"<id>"}` (see `DemoScenario` enum). Responses always include `auditUrl` when a `traceId` exists.
+- **Ops:** `GET /actuator/health`, H2 console at `/h2-console` (in-memory DB; demo only).
+- **`POST /agent/execute`:** the demo registers a **`@Primary` `DemoLlmClient`**, so the user message can include `[[tool:tool_name]]` to pick the planned tool instead of the YAML default.
+
 ## License
 
 Licensed under the **Apache License 2.0** — see [LICENSE](LICENSE).
+
+Contributing: [CONTRIBUTING.md](CONTRIBUTING.md) · Security: [SECURITY.md](SECURITY.md)
 
 ## Open-source repository
 
 To host the code publicly (for example on GitHub):
 
-1. If you do not have a repo yet: `git init -b main`, then `git add -A` and commit.
-2. Set your identity once: `git config user.name "Your Name"` and `git config user.email "you@example.com"` (then `git commit --amend --reset-author --no-edit` on the first commit if you used a placeholder author).
-3. Create a **public** repository on GitHub (or GitLab), add the remote, push: `git remote add origin <url>` then `git push -u origin main`
+1. Set your identity: `git config user.name "Your Name"` and `git config user.email "you@example.com"`.
+2. Stage **everything** (not only `README.md`): `git add -A` then `git commit -m "Your message"`.
+3. Create the **public** repo **`ranasl62/agc-framework`** on GitHub (empty, no README if you already have one here).
+4. `git branch -M main` · `git remote add origin git@github.com:ranasl62/agc-framework.git` · `git push -u origin main`
 
 CI (`.github/workflows/ci.yml`) runs `mvn verify` on pushes and pull requests.
 

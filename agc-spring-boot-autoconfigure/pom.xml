@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.framework.agent</groupId>
+        <artifactId>agc-framework</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>agc-spring-boot-autoconfigure</artifactId>
+    <name>AGC Spring Boot Autoconfigure</name>
+    <description>All AGC @AutoConfiguration classes (ordering enforced here)</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.framework.agent</groupId>
+            <artifactId>agc-storage</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.framework.agent</groupId>
+            <artifactId>agc-audit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.framework.agent</groupId>
+            <artifactId>agc-policy</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.framework.agent</groupId>
+            <artifactId>agc-guardrail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.framework.agent</groupId>
+            <artifactId>agc-mcp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.framework.agent</groupId>
+            <artifactId>agc-orchestrator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.framework.agent</groupId>
+            <artifactId>agc-observability</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.framework.agent</groupId>
+            <artifactId>agc-api</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+</project>

@@ -1,6 +1,10 @@
 spring:
   application:
     name: agc-demo
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
   datasource:
     url: jdbc:h2:mem:agc;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
     driver-class-name: org.h2.Driver
@@ -12,6 +16,15 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
 
 agc:
   policy:
@@ -26,6 +39,9 @@ agc:
       - id: block-payment
         toolName: payment_api
         action: DENY
+      - id: warn-read-sensitive
+        toolName: read
+        action: WARN
   llm:
     planned-tool-name: search
   audit:

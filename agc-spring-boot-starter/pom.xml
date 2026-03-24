@@ -12,40 +12,12 @@
 
     <artifactId>agc-spring-boot-starter</artifactId>
     <name>AGC Spring Boot Starter</name>
-    <description>Single dependency: pulls core, storage, audit, policy, guardrail, MCP gateway, orchestrator, observability</description>
+    <description>Dependency aggregator only — pulls agc-spring-boot-autoconfigure (feature JARs are transitive)</description>
 
     <dependencies>
         <dependency>
             <groupId>com.framework.agent</groupId>
-            <artifactId>agc-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.framework.agent</groupId>
-            <artifactId>agc-storage</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.framework.agent</groupId>
-            <artifactId>agc-audit</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.framework.agent</groupId>
-            <artifactId>agc-policy</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.framework.agent</groupId>
-            <artifactId>agc-guardrail</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.framework.agent</groupId>
-            <artifactId>agc-mcp</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.framework.agent</groupId>
-            <artifactId>agc-orchestrator</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.framework.agent</groupId>
-            <artifactId>agc-observability</artifactId>
+            <artifactId>agc-spring-boot-autoconfigure</artifactId>
         </dependency>
     </dependencies>
 </project>

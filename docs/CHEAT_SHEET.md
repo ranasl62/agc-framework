@@ -38,6 +38,7 @@ Add **`agc-api`** for `POST /agent/execute` and `GET /audit/{traceId}`.
 | `agc.guardrails.rules` | List of rules: `id`, `toolName`, `action` (`DENY` / `WARN`) |
 | `agc.llm.planned-tool-name` | Stub orchestrator: which tool name to plan (demo) |
 | `agc.audit.max-payload-chars` | Bound persisted audit payload text |
+| `agc.audit.strict-secondary-audit` | Default `true`: if persisting `SYSTEM_ERROR` after a tool failure fails, throws `GovernedPathAuditException` (fail-closed) |
 
 Example (excerpt): see `agc-demo-app/src/main/resources/application.yml`.
 
@@ -60,6 +61,18 @@ curl -s "http://localhost:8080/audit/<traceId>" | jq .
 ```
 
 **Forbidden (403)** responses use **RFC 7807** `ProblemDetail` with `reasonCode`, `matchedRuleIds`, `traceId` when the gateway denies invocation.
+
+### Demo application (`agc-demo-app`)
+
+| What | URL / note |
+|------|------------|
+| Scenario UI | `GET /` (static `index.html`) |
+| Scenario catalog | `GET /demo/scenarios` |
+| Run scenario | `POST /demo/run` with `{"scenario":"allow_search"}` (ids match `DemoScenario`) |
+| Health | `GET /actuator/health` |
+| H2 console | `GET /h2-console` (demo only; JDBC `jdbc:h2:mem:agc`, user `sa`) |
+
+Planned tool for the stub LLM: **`[[tool:name]]`** in the user message, or per-scenario override inside `/demo/run`.
 
 ---
 

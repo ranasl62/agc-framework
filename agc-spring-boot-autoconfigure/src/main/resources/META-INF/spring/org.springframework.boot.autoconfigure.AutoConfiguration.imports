@@ -1,0 +1,8 @@
+com.framework.agent.autoconfigure.AgcStorageAutoConfiguration
+com.framework.agent.autoconfigure.AgcAuditAutoConfiguration
+com.framework.agent.autoconfigure.AgcPolicyAutoConfiguration
+com.framework.agent.autoconfigure.AgcGuardrailAutoConfiguration
+com.framework.agent.autoconfigure.AgcMcpAutoConfiguration
+com.framework.agent.autoconfigure.AgcOrchestratorAutoConfiguration
+com.framework.agent.autoconfigure.AgcObservabilityAutoConfiguration
+com.framework.agent.autoconfigure.AgcWebAutoConfiguration

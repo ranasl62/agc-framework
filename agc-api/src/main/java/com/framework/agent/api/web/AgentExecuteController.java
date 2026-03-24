@@ -1,5 +1,7 @@
 package com.framework.agent.api.web;
 
+import com.framework.agent.core.GovernedPathAuditException;
+import com.framework.agent.core.InvalidGovernanceContextException;
 import com.framework.agent.core.ToolInvocationResult;
 import com.framework.agent.orchestrator.AgentOrchestrator;
 import com.framework.agent.storage.AuditEventEntity;
@@ -50,6 +52,19 @@ public class AgentExecuteController {
             pd.setProperty("matchedRuleIds", e.getDecision().matchedRuleIds());
             pd.setProperty("traceId", traceId);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(pd);
+        } catch (InvalidGovernanceContextException e) {
+            ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
+            pd.setTitle("Invalid governance context");
+            pd.setProperty("traceId", traceId);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
+        } catch (GovernedPathAuditException e) {
+            ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "Audit persistence failed on governed path"
+            );
+            pd.setTitle("Governed path audit failure");
+            pd.setProperty("traceId", traceId);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(pd);
         } catch (Exception e) {
             ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
             pd.setType(URI.create("about:blank"));

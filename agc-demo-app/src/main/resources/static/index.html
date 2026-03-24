@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>AGC Demo</title>
+  <style>
+    :root {
+      font-family: system-ui, sans-serif;
+      line-height: 1.5;
+      color: #1a1a1a;
+      background: #f4f4f5;
+    }
+    body { max-width: 52rem; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    p.muted { color: #52525b; font-size: 0.9rem; margin-top: 0; }
+    ul.links { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1rem 0; }
+    ul.links a { color: #2563eb; }
+    section { background: #fff; border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+    button {
+      display: block; width: 100%; text-align: left;
+      padding: 0.65rem 0.75rem; margin: 0.4rem 0; border: 1px solid #e4e4e7;
+      border-radius: 6px; background: #fafafa; cursor: pointer; font-size: 0.95rem;
+    }
+    button:hover { background: #f4f4f5; border-color: #d4d4d8; }
+    button strong { display: block; color: #18181b; }
+    button span { font-size: 0.82rem; color: #71717a; font-weight: normal; }
+    pre {
+      background: #18181b; color: #e4e4e7; padding: 1rem; border-radius: 6px;
+      overflow: auto; font-size: 0.8rem; max-height: 22rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Agent Governance and Control — demo</h1>
+  <p class="muted">Run scenarios against the gateway, policy, guardrails, and audit pipeline.</p>
+  <ul class="links">
+    <li><a href="/actuator/health">Actuator health</a></li>
+    <li><a href="/h2-console" target="_blank" rel="noopener">H2 console</a> (JDBC URL jdbc:h2:mem:agc, user sa, empty password)</li>
+    <li><a href="/demo/scenarios">GET /demo/scenarios</a> (JSON)</li>
+  </ul>
+
+  <section>
+    <h2 style="margin-top:0;font-size:1.1rem">Scenarios</h2>
+    <div id="buttons"></div>
+  </section>
+
+  <section>
+    <h2 style="margin-top:0;font-size:1.1rem">Last response</h2>
+    <pre id="out">Run a scenario.</pre>
+  </section>
+
+  <script>
+    async function loadScenarios() {
+      const r = await fetch('/demo/scenarios');
+      const list = await r.json();
+      const root = document.getElementById('buttons');
+      list.forEach(s => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.innerHTML = '<strong>' + s.id + '</strong><span>' + escapeHtml(s.description) + '</span>';
+        b.onclick = () => run(s.id);
+        root.appendChild(b);
+      });
+    }
+
+    function escapeHtml(t) {
+      const d = document.createElement('div');
+      d.textContent = t;
+      return d.innerHTML;
+    }
+
+    async function run(id) {
+      const out = document.getElementById('out');
+      out.textContent = 'Loading.';
+      try {
+        const r = await fetch('/demo/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario: id })
+        });
+        const j = await r.json();
+        const lines = [];
+        lines.push('HTTP ' + r.status);
+        lines.push(JSON.stringify(j, null, 2));
+        if (j.auditUrl) {
+          lines.push('');
+          lines.push('Audit: GET ' + j.auditUrl + ' (same host)');
+        }
+        out.textContent = lines.join('\n');
+      } catch (e) {
+        out.textContent = String(e);
+      }
+    }
+
+    loadScenarios();
+  </script>
+</body>
+</html>

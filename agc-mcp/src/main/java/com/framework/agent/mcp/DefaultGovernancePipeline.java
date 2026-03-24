@@ -28,14 +28,29 @@ public class DefaultGovernancePipeline implements GovernancePipeline {
                     Map.of("traceId", ctx.traceId())
             );
         }
-        GovernanceDecision p = policy.evaluate(ctx);
-        if (p.isDeny()) {
-            return p;
+        try {
+            GovernanceDecision p = policy.evaluate(ctx);
+            if (p == null) {
+                return GovernanceDecision.deny(
+                        "GOVERNANCE_CONTRACT_VIOLATION",
+                        List.of("policy"),
+                        Map.of("message", "PolicyEvaluator returned null")
+                );
+            }
+            if (p.isDeny()) {
+                return p;
+            }
+            GovernanceDecision g = guardrails.evaluate(ctx);
+            if (g == null) {
+                return GovernanceDecision.allow();
+            }
+            return g;
+        } catch (RuntimeException ex) {
+            return GovernanceDecision.deny(
+                    "GOVERNANCE_EVALUATION_FAILED",
+                    List.of("agc"),
+                    Map.of("error", ex.getClass().getSimpleName(), "message", String.valueOf(ex.getMessage()))
+            );
         }
-        GovernanceDecision g = guardrails.evaluate(ctx);
-        if (g == null) {
-            return GovernanceDecision.allow();
-        }
-        return g;
     }
 }

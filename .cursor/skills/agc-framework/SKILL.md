@@ -1,6 +1,6 @@
 ---
 name: agc-framework
-description: Agent Governance & Control — multi-module Spring layout; pure-Java agc-core (com.framework.agent.core); starter aggregates storage, audit, policy, guardrail, MCP gateway, orchestrator, observability; optional agc-api REST. Use when changing governance, audit, policy YAML, guardrails, ToolInvocationGateway, or module boundaries.
+description: Agent Governance & Control — multi-module Spring layout; pure-Java agc-core; agc-spring-boot-autoconfigure for all @AutoConfiguration; starter is aggregator only; McpToolExecutor in mcp.internal; optional agc-api REST. Use when changing governance, audit, policy, guardrails, gateway, or module boundaries.
 ---
 
 # Agent Governance & Control (AGC)
@@ -18,11 +18,12 @@ description: Agent Governance & Control — multi-module Spring layout; pure-Jav
 | **agc-audit** | `JpaAuditRecorder`, `agc.audit.*` |
 | **agc-policy** | `RoleToolPolicyEvaluator`, `agc.policy.roles` |
 | **agc-guardrail** | `ListGuardrailEvaluator`, `agc.guardrails.rules` |
-| **agc-mcp** | `DefaultGovernancePipeline`, `DefaultToolInvocationGateway`, `EchoMcpToolExecutor` |
+| **agc-mcp** | `DefaultGovernancePipeline`, `DefaultToolInvocationGateway`; executor SPI in `com.framework.agent.mcp.internal` |
+| **agc-spring-boot-autoconfigure** | All `@AutoConfiguration` classes (`Agc*AutoConfiguration`) |
 | **agc-orchestrator** | `AgentOrchestrator`, stub LLM `agc.llm.*` |
-| **agc-observability** | Micrometer customizer (extend for OTel) |
+| **agc-observability** | Placeholder package; Micrometer tags applied from autoconfigure when `MeterRegistry` exists |
 | **agc-api** | REST controllers (`com.framework.agent.api.web`) |
-| **agc-spring-boot-starter** | **User-facing BOM-style dependency** (no Spring code; pulls modules above **except** `agc-api`) |
+| **agc-spring-boot-starter** | **Aggregator only** → `agc-spring-boot-autoconfigure` (transitive feature JARs; add `agc-api` for REST) |
 | **agc-demo-app** | Sample: starter + `agc-api` + H2 |
 
 ## Invariants

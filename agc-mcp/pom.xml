@@ -31,9 +31,5 @@
             <groupId>com.framework.agent</groupId>
             <artifactId>agc-guardrail</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-        </dependency>
     </dependencies>
 </project>

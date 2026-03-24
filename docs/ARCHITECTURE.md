@@ -13,6 +13,7 @@ flowchart BT
   demo[agc-demo-app]
   api[agc-api]
   starter[agc-spring-boot-starter]
+  autoconf[agc-spring-boot-autoconfigure]
   orch[agc-orchestrator]
   mcp[agc-mcp]
   pol[agc-policy]
@@ -24,13 +25,15 @@ flowchart BT
 
   demo --> api
   demo --> starter
-  starter --> orch
-  starter --> mcp
-  starter --> pol
-  starter --> gr
-  starter --> aud
-  starter --> stor
-  starter --> obs
+  starter --> autoconf
+  autoconf --> orch
+  autoconf --> mcp
+  autoconf --> pol
+  autoconf --> gr
+  autoconf --> aud
+  autoconf --> stor
+  autoconf --> obs
+  autoconf --> api
   api --> orch
   api --> stor
   orch --> mcp
@@ -46,8 +49,9 @@ flowchart BT
   aud --> core
 ```
 
-- **agc-spring-boot-starter** is a **POM-only aggregator**: it declares dependencies on the feature modules. It does **not** register its own `AutoConfiguration` class (each feature module ships `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`).
-- **agc-api** is **optional**: add it when you want `AgentExecuteController` and `AgcWebAutoConfiguration`.
+- **agc-spring-boot-starter** depends **only** on **`agc-spring-boot-autoconfigure`**, which pulls feature JARs and registers every `@AutoConfiguration`.
+- **`McpToolExecutor`** is **`com.framework.agent.mcp.internal`** — not part of the public `agc-core` API; ArchUnit enforces that only the gateway (and Spring autoconfigure wiring) may use it.
+- **agc-api** is **optional** at runtime (`AgcWebAutoConfiguration` is `@ConditionalOnClass` for REST controllers).
 
 ---
 
@@ -60,22 +64,41 @@ flowchart BT
 | `JpaAuditRecorder`, audit properties | `com.framework.agent.audit` | agc-audit |
 | Role to tools policy | `com.framework.agent.policy` | agc-policy |
 | Guardrail rules | `com.framework.agent.guardrail` | agc-guardrail |
-| Pipeline, gateway, MCP executor adapter | `com.framework.agent.mcp` | agc-mcp |
+| Pipeline, gateway | `com.framework.agent.mcp` | agc-mcp |
+| MCP adapter SPI (internal) | `com.framework.agent.mcp.internal` | agc-mcp |
+| Spring Boot wiring | `com.framework.agent.autoconfigure` | agc-spring-boot-autoconfigure |
 | Orchestrator, stub LLM | `com.framework.agent.orchestrator` | agc-orchestrator |
-| Micrometer hooks | `com.framework.agent.observability` | agc-observability |
+| Observability placeholder | `com.framework.agent.observability` | agc-observability |
 | REST controllers | `com.framework.agent.api.web` | agc-api |
 
 ---
 
 ## Auto-configuration registration
 
-Each module lists one or more `@AutoConfiguration` classes in:
+All AGC `@AutoConfiguration` classes live in **`agc-spring-boot-autoconfigure`** under `com.framework.agent.autoconfigure`, listed in:
 
-`src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`
+`agc-spring-boot-autoconfigure/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`
 
-Spring Boot merges all entries from the classpath. Ordering between AGC modules is enforced with `@AutoConfigureAfter` / `@AutoConfigureBefore` on those classes (for example storage after `DataSourceAutoConfiguration`, audit after storage, MCP after policy, guardrail, and audit).
+**Order (each `@AutoConfigureAfter` the previous):**
 
-**Do not** add a monolithic `AgcAutoConfiguration` in the starter unless you also ship the class; stale `AutoConfiguration.imports` entries cause startup failures (`Unable to read meta-data for class …`).
+1. `AgcStorageAutoConfiguration` — after `DataSourceAutoConfiguration`
+2. `AgcAuditAutoConfiguration` — after storage
+3. `AgcPolicyAutoConfiguration` — after audit
+4. `AgcGuardrailAutoConfiguration` — after policy
+5. `AgcMcpAutoConfiguration` — after guardrail and audit
+6. `AgcOrchestratorAutoConfiguration` — after MCP
+7. `AgcObservabilityAutoConfiguration` — after orchestrator (conditional on `MeterRegistry`)
+8. `AgcWebAutoConfiguration` — after orchestrator (conditional on REST controllers class)
+
+Feature modules **do not** ship their own `AutoConfiguration.imports` files.
+
+---
+
+## Governance hardening (runtime)
+
+- **`DefaultToolInvocationGateway`** validates **non-blank `traceId` and `toolName`**, requires a **non-null** pipeline decision, persists **GOVERNANCE_DECISION** before branching, and uses **`decision.type() == DENY`** before any tool call.
+- **Audit failures** on the governed path throw **`GovernedPathAuditException`** (fail-closed). Secondary **`SYSTEM_ERROR`** audit after a tool failure uses **`agc.audit.strict-secondary-audit`** (default `true`) to fail closed or relax only that write.
+- **`DefaultGovernancePipeline`** maps evaluator exceptions to **DENY** (`GOVERNANCE_EVALUATION_FAILED`) and treats null policy decisions as **DENY** (`GOVERNANCE_CONTRACT_VIOLATION`).
 
 ---
 
@@ -83,8 +106,8 @@ Spring Boot merges all entries from the classpath. Ordering between AGC modules 
 
 1. `POST /agent/execute` calls `AgentOrchestrator` (`agc-orchestrator`).
 2. The orchestrator invokes **`ToolInvocationGateway`** (`agc-mcp`).
-3. The gateway runs **`GovernancePipeline`**: **policy** then **guardrails**; **DENY** returns without calling `McpToolExecutor`.
-4. **ALLOW** / **WARN** leads to tool execution then **`AuditRecorder`** persisting audit rows via **`agc-storage`**.
+3. The gateway runs **`GovernancePipeline`**: **policy** then **guardrails**; **`DecisionType.DENY`** ends without calling **`McpToolExecutor`**.
+4. **ALLOW** / **WARN** leads to internal tool execution then **`AuditRecorder`** persisting audit rows via **`agc-storage`**.
 5. `GET /audit/{traceId}` reads ordered events from the repository.
 
 ---
