@@ -5,10 +5,11 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * Built-in scenarios exercising policy, guardrails (DENY/WARN), and successful tool invocation.
+ * Built-in scenarios exercising registry, policy, guardrails (DENY/WARN), and successful tool invocation.
  */
 public enum DemoScenario {
     ALLOW_SEARCH(
+            DemoScenarioGroup.SUCCESS,
             "allow_search",
             "Role `user` calls allowed tool `search` — expect success and full audit trail.",
             "demo-user",
@@ -16,7 +17,17 @@ public enum DemoScenario {
             "Hello, please use [[tool:search]]",
             "search"
     ),
+    ALLOW_SEARCH_VERSIONED(
+            DemoScenarioGroup.SUCCESS,
+            "allow_search_versioned",
+            "Planned tool `search:v2` — registry uses logical name `search`; expect success (`echo:search:v2`).",
+            "demo-user",
+            Set.of("user"),
+            "Versioned search (override)",
+            "search:v2"
+    ),
     ALLOW_READ_WITH_WARN(
+            DemoScenarioGroup.SUCCESS,
             "allow_read_with_warn",
             "Role `user` calls `read` — guardrail emits WARN; tool still runs.",
             "demo-user",
@@ -24,7 +35,17 @@ public enum DemoScenario {
             "Summarize doc via [[tool:read]]",
             "read"
     ),
+    UNKNOWN_TOOL_NOT_REGISTERED(
+            DemoScenarioGroup.REGISTRY,
+            "unknown_tool_not_registered",
+            "Plans `exfil` — not in `agc.tools.allowed` → DENY `TOOL_NOT_REGISTERED` before policy.",
+            "demo-user",
+            Set.of("user"),
+            "Run [[tool:exfil]]",
+            "exfil"
+    ),
     POLICY_DENY_FORBIDDEN_TOOL(
+            DemoScenarioGroup.POLICY,
             "policy_deny_forbidden_tool",
             "Role `user` plans `delete_db` — policy DENY (tool not in role allowlist).",
             "demo-user",
@@ -33,6 +54,7 @@ public enum DemoScenario {
             "delete_db"
     ),
     POLICY_DENY_NO_ROLES(
+            DemoScenarioGroup.POLICY,
             "policy_deny_no_roles",
             "Empty roles — policy DENY (`POLICY_NO_ROLES`).",
             "anonymous",
@@ -41,6 +63,7 @@ public enum DemoScenario {
             "search"
     ),
     GUARDRAIL_DENY_PAYMENT(
+            DemoScenarioGroup.GUARDRAIL,
             "guardrail_deny_payment",
             "Role `admin` (`*` tools) plans `payment_api` — guardrail DENY blocks MCP.",
             "demo-admin",
@@ -49,6 +72,7 @@ public enum DemoScenario {
             "payment_api"
     );
 
+    private final DemoScenarioGroup group;
     private final String id;
     private final String description;
     private final String principalId;
@@ -57,6 +81,7 @@ public enum DemoScenario {
     private final String plannedTool;
 
     DemoScenario(
+            DemoScenarioGroup group,
             String id,
             String description,
             String principalId,
@@ -64,12 +89,17 @@ public enum DemoScenario {
             String userMessage,
             String plannedTool
     ) {
+        this.group = group;
         this.id = id;
         this.description = description;
         this.principalId = principalId;
         this.roles = roles;
         this.userMessage = userMessage;
         this.plannedTool = plannedTool;
+    }
+
+    public DemoScenarioGroup group() {
+        return group;
     }
 
     public String id() {
@@ -111,10 +141,10 @@ public enum DemoScenario {
 
     public static List<DemoScenarioInfo> catalog() {
         return java.util.Arrays.stream(values())
-                .map(s -> new DemoScenarioInfo(s.id, s.description))
+                .map(s -> new DemoScenarioInfo(s.id, s.description, s.group.name().toLowerCase(Locale.ROOT)))
                 .toList();
     }
 
-    public record DemoScenarioInfo(String id, String description) {
+    public record DemoScenarioInfo(String id, String description, String group) {
     }
 }

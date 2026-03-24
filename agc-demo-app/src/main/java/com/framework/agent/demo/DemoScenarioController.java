@@ -7,6 +7,7 @@ import com.framework.agent.core.LlmException;
 import com.framework.agent.core.ToolExecutionException;
 import com.framework.agent.core.ToolInvocationDeniedException;
 import com.framework.agent.core.ToolInvocationResult;
+import com.framework.agent.api.web.TrustBoundaryPrincipalResolver;
 import com.framework.agent.orchestrator.AgentOrchestrator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,11 +49,12 @@ public class DemoScenarioController {
         String correlationId = traceId;
 
         try (DemoToolOverride.Scope ignored = DemoToolOverride.scope(scenario.plannedTool())) {
+            String principalId = TrustBoundaryPrincipalResolver.resolvePrincipalId(scenario.principalId());
             ToolInvocationResult result = orchestrator.runUserTurn(
                     traceId,
                     correlationId,
                     "demo-tenant",
-                    scenario.principalId(),
+                    principalId,
                     scenario.roles(),
                     scenario.userMessage(),
                     null

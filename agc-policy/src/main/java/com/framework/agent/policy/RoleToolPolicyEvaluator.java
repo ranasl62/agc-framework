@@ -3,6 +3,7 @@ package com.framework.agent.policy;
 import com.framework.agent.core.GovernanceDecision;
 import com.framework.agent.core.PolicyEvaluator;
 import com.framework.agent.core.ToolInvocationContext;
+import com.framework.agent.core.ToolNames;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -31,7 +32,7 @@ public class RoleToolPolicyEvaluator implements PolicyEvaluator {
                     Map.of("message", "No roles on context")
             );
         }
-        String tool = ctx.toolName();
+        String toolLogical = ToolNames.logicalName(ctx.toolName());
         for (String role : ctx.roles()) {
             List<String> allowed = roleToTools.get(role.toLowerCase(Locale.ROOT));
             if (allowed == null) {
@@ -40,14 +41,14 @@ public class RoleToolPolicyEvaluator implements PolicyEvaluator {
             if (allowed.contains("*")) {
                 return GovernanceDecision.allow();
             }
-            if (allowed.stream().anyMatch(t -> t.equalsIgnoreCase(tool))) {
+            if (allowed.stream().anyMatch(t -> ToolNames.logicalName(t).equals(toolLogical))) {
                 return GovernanceDecision.allow();
             }
         }
         return GovernanceDecision.deny(
                 "POLICY_TOOL_FORBIDDEN",
                 List.of("policy"),
-                Map.of("tool", tool, "roles", String.join(",", ctx.roles()))
+                Map.of("tool", ctx.toolName(), "roles", String.join(",", ctx.roles()))
         );
     }
 }

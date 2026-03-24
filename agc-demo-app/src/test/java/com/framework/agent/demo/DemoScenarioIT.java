@@ -28,6 +28,27 @@ class DemoScenarioIT {
     }
 
     @Test
+    void allowSearchVersioned_succeeds() throws Exception {
+        mockMvc.perform(post("/demo/run")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"scenario\":\"allow_search_versioned\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.scenario").value("allow_search_versioned"))
+                .andExpect(jsonPath("$.outcomeSummary").value("echo:search:v2"));
+    }
+
+    @Test
+    void unknownTool_notRegistered() throws Exception {
+        mockMvc.perform(post("/demo/run")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"scenario\":\"unknown_tool_not_registered\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.denialReasonCode").value("TOOL_NOT_REGISTERED"));
+    }
+
+    @Test
     void allowSearch_succeeds() throws Exception {
         mockMvc.perform(post("/demo/run")
                         .contentType(MediaType.APPLICATION_JSON)

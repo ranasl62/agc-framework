@@ -1,5 +1,6 @@
 package com.framework.agent.api.web;
 
+import com.framework.agent.core.GovernanceMode;
 import com.framework.agent.core.GovernedPathAuditException;
 import com.framework.agent.core.InvalidGovernanceContextException;
 import com.framework.agent.core.ToolInvocationResult;
@@ -13,33 +14,74 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
-import java.util.UUID;
 
 @RestController
 public class AgentExecuteController {
 
     private final AgentOrchestrator orchestrator;
     private final AuditEventRepository auditEventRepository;
+    private final GovernanceMode governanceMode;
 
-    public AgentExecuteController(AgentOrchestrator orchestrator, AuditEventRepository auditEventRepository) {
+    public AgentExecuteController(
+            AgentOrchestrator orchestrator,
+            AuditEventRepository auditEventRepository,
+            @Value("${agc.governance.mode:DEVELOPMENT}") String governanceModeRaw
+    ) {
         this.orchestrator = orchestrator;
         this.auditEventRepository = auditEventRepository;
+        this.governanceMode = parseGovernanceMode(governanceModeRaw);
+    }
+
+    private static GovernanceMode parseGovernanceMode(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return GovernanceMode.DEVELOPMENT;
+        }
+        try {
+            return GovernanceMode.valueOf(raw.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            return GovernanceMode.DEVELOPMENT;
+        }
     }
 
     @PostMapping("/agent/execute")
     public ResponseEntity<?> execute(@RequestBody ExecuteRequest request) {
-        String traceId = request.traceId() != null ? request.traceId() : UUID.randomUUID().toString();
+        if (request.traceId() == null || request.traceId().isBlank()) {
+            ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "traceId is required");
+            pd.setTitle("Invalid governance context");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
+        }
+        if (request.correlationId() == null || request.correlationId().isBlank()) {
+            ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "correlationId is required");
+            pd.setTitle("Invalid governance context");
+            pd.setProperty("traceId", request.traceId().trim());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
+        }
+        String traceId = request.traceId().trim();
+        if (governanceMode == GovernanceMode.PRODUCTION && !TrustBoundaryPrincipalResolver.isAuthenticated()) {
+            ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                    HttpStatus.UNAUTHORIZED,
+                    "Authentication required when agc.governance.mode=PRODUCTION"
+            );
+            pd.setTitle("Authentication required");
+            pd.setProperty("traceId", traceId);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(pd);
+        }
+        String principalId = TrustBoundaryPrincipalResolver.resolvePrincipalId(
+                request.principalId() != null ? request.principalId() : "anonymous"
+        );
         try {
             ToolInvocationResult result = orchestrator.runUserTurn(
                     traceId,
-                    request.correlationId() != null ? request.correlationId() : traceId,
+                    request.correlationId().trim(),
                     request.tenantId() != null ? request.tenantId() : "",
-                    request.principalId() != null ? request.principalId() : "anonymous",
+                    principalId,
                     request.roles() != null ? Set.copyOf(request.roles()) : Set.of(),
                     request.message() != null ? request.message() : "",
                     null

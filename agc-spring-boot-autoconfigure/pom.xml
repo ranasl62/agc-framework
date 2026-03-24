@@ -48,6 +48,10 @@
             <artifactId>agc-observability</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.framework.agent</groupId>
             <artifactId>agc-api</artifactId>
             <optional>true</optional>

@@ -3,6 +3,7 @@ package com.framework.agent.guardrail;
 import com.framework.agent.core.GovernanceDecision;
 import com.framework.agent.core.GuardrailEvaluator;
 import com.framework.agent.core.ToolInvocationContext;
+import com.framework.agent.core.ToolNames;
 
 import java.util.List;
 import java.util.Locale;
@@ -52,6 +53,6 @@ public class ListGuardrailEvaluator implements GuardrailEvaluator {
         if ("*".equals(pattern)) {
             return true;
         }
-        return pattern.equalsIgnoreCase(toolName);
+        return ToolNames.logicalName(pattern).equals(ToolNames.logicalName(toolName));
     }
 }

@@ -13,7 +13,8 @@ import java.util.regex.Pattern;
  */
 public final class DemoLlmClient implements LlmClient {
 
-    private static final Pattern TOOL_TOKEN = Pattern.compile("\\[\\[tool:([a-zA-Z0-9_\\-]+)\\]\\]");
+    /** Supports logical names and {@code tool:vN} (e.g. {@code search:v2}). */
+    private static final Pattern TOOL_TOKEN = Pattern.compile("\\[\\[tool:([a-zA-Z0-9_\\-:.]+)\\]\\]");
 
     private final LlmStubProperties stubProperties;
 

@@ -3,66 +3,133 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>AGC Demo</title>
+  <title>AGC — Agent Governance &amp; Control demo</title>
   <style>
     :root {
-      font-family: system-ui, sans-serif;
+      --bg: #0f172a;
+      --surface: #fff;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --accent: #2563eb;
+      --success: #15803d;
+      --deny: #b91c1c;
+      --warn: #a16207;
+      font-family: "Segoe UI", system-ui, sans-serif;
       line-height: 1.5;
-      color: #1a1a1a;
-      background: #f4f4f5;
+      color: #0f172a;
+      background: linear-gradient(160deg, #0f172a 0%, #1e293b 40%, #f1f5f9 40%);
+      min-height: 100vh;
     }
-    body { max-width: 52rem; margin: 2rem auto; padding: 0 1rem; }
-    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
-    p.muted { color: #52525b; font-size: 0.9rem; margin-top: 0; }
-    ul.links { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1rem 0; }
-    ul.links a { color: #2563eb; }
-    section { background: #fff; border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
-    button {
+    body { max-width: 56rem; margin: 0 auto; padding: 2rem 1rem 3rem; }
+    header {
+      color: #f8fafc;
+      margin-bottom: 1.5rem;
+    }
+    header h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.35rem; letter-spacing: -0.02em; }
+    header p { margin: 0; color: #94a3b8; font-size: 0.95rem; max-width: 40rem; }
+    header .meta {
+      margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;
+      font-size: 0.8rem;
+    }
+    header .meta a {
+      color: #93c5fd; text-decoration: none; border-bottom: 1px solid transparent;
+    }
+    header .meta a:hover { border-bottom-color: #93c5fd; }
+    .pill {
+      display: inline-block; padding: 0.2rem 0.55rem; border-radius: 999px;
+      background: rgba(255,255,255,.12); color: #e2e8f0; font-size: 0.75rem;
+    }
+    .panel {
+      background: var(--surface);
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(15, 23, 42, .08);
+      padding: 1.25rem 1.35rem;
+      margin-bottom: 1rem;
+    }
+    .panel h2 {
+      margin: 0 0 0.75rem;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .links { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; font-size: 0.9rem; }
+    .links a { color: var(--accent); }
+    .group-title {
+      font-size: 0.8rem; font-weight: 600; color: var(--muted);
+      margin: 1rem 0 0.5rem; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .group-title:first-child { margin-top: 0; }
+    .buttons { display: flex; flex-direction: column; gap: 0.45rem; }
+    button.scenario {
       display: block; width: 100%; text-align: left;
-      padding: 0.65rem 0.75rem; margin: 0.4rem 0; border: 1px solid #e4e4e7;
-      border-radius: 6px; background: #fafafa; cursor: pointer; font-size: 0.95rem;
+      padding: 0.65rem 0.85rem; border: 1px solid var(--border);
+      border-radius: 8px; background: #fafafa; cursor: pointer; font-size: 0.92rem;
+      transition: border-color .15s, background .15s;
     }
-    button:hover { background: #f4f4f5; border-color: #d4d4d8; }
-    button strong { display: block; color: #18181b; }
-    button span { font-size: 0.82rem; color: #71717a; font-weight: normal; }
-    pre {
-      background: #18181b; color: #e4e4e7; padding: 1rem; border-radius: 6px;
-      overflow: auto; font-size: 0.8rem; max-height: 22rem;
+    button.scenario:hover { background: #f4f4f5; border-color: #cbd5e1; }
+    button.scenario strong { display: block; color: #0f172a; font-family: ui-monospace, monospace; font-size: 0.85rem; }
+    button.scenario span { font-size: 0.82rem; color: #64748b; font-weight: normal; display: block; margin-top: 0.2rem; }
+    .tag {
+      display: inline-block; font-size: 0.65rem; font-weight: 600;
+      padding: 0.12rem 0.4rem; border-radius: 4px; margin-bottom: 0.25rem;
+      text-transform: uppercase; letter-spacing: 0.03em;
     }
+    .tag.success { background: #dcfce7; color: var(--success); }
+    .tag.registry { background: #e0e7ff; color: #3730a3; }
+    .tag.policy { background: #fef3c7; color: var(--warn); }
+    .tag.guardrail { background: #fee2e2; color: var(--deny); }
+    pre.out {
+      background: #0f172a; color: #e2e8f0; padding: 1rem 1.1rem; border-radius: 8px;
+      overflow: auto; font-size: 0.78rem; max-height: 28rem; line-height: 1.45;
+      margin: 0; white-space: pre-wrap; word-break: break-word;
+    }
+    .banner {
+      padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600;
+      margin-bottom: 0.75rem; display: none;
+    }
+    .banner.show { display: block; }
+    .banner.ok { background: #dcfce7; color: var(--success); }
+    .banner.deny { background: #fee2e2; color: var(--deny); }
+    .banner.err { background: #fef3c7; color: var(--warn); }
+    code.inline { font-size: 0.8em; background: #f1f5f9; padding: 0.1rem 0.35rem; border-radius: 4px; }
   </style>
 </head>
 <body>
-  <h1>Agent Governance and Control — demo</h1>
-  <p class="muted">Run scenarios against the gateway, policy, guardrails, and audit pipeline.</p>
-  <ul class="links">
-    <li><a href="/actuator/health">Actuator health</a></li>
-    <li><a href="/h2-console" target="_blank" rel="noopener">H2 console</a> (JDBC URL jdbc:h2:mem:agc, user sa, empty password)</li>
-    <li><a href="/demo/scenarios">GET /demo/scenarios</a> (JSON)</li>
-  </ul>
+  <header>
+    <h1>Agent Governance &amp; Control</h1>
+    <p>Run scenarios against the gateway: registry → policy → guardrails → MCP executor, with append-only audit.</p>
+    <div class="meta">
+      <span class="pill">Demo · DEVELOPMENT governance</span>
+      <a href="https://github.com/ranasl62/agc-framework" target="_blank" rel="noopener">Source on GitHub</a>
+      <a href="/actuator/health">Health</a>
+      <a href="/h2-console" target="_blank" rel="noopener">H2 console</a>
+      <a href="/demo/scenarios">GET /demo/scenarios</a>
+    </div>
+  </header>
 
-  <section>
-    <h2 style="margin-top:0;font-size:1.1rem">Scenarios</h2>
-    <div id="buttons"></div>
-  </section>
+  <div class="panel">
+    <h2>Try scenarios</h2>
+    <p style="margin:0 0 1rem; font-size:0.9rem; color:#64748b;">Each run uses <code class="inline">POST /demo/run</code> with a JSON body. Responses include <code class="inline">auditUrl</code> for <code class="inline">GET /audit/{traceId}</code>.</p>
+    <div id="groups"></div>
+  </div>
 
-  <section>
-    <h2 style="margin-top:0;font-size:1.1rem">Last response</h2>
-    <pre id="out">Run a scenario.</pre>
-  </section>
+  <div class="panel">
+    <h2>Last response</h2>
+    <div id="banner" class="banner" role="status"></div>
+    <pre id="out" class="out">Pick a scenario or use curl:</pre>
+    <p style="margin:0.75rem 0 0; font-size:0.8rem; color:#64748b;">
+      <code class="inline">curl -s -X POST http://localhost:8080/agent/execute -H 'Content-Type: application/json' -d '{"traceId":"t-1","correlationId":"c-1","principalId":"u1","roles":["user"],"message":"hello"}'</code>
+    </p>
+  </div>
 
   <script>
-    async function loadScenarios() {
-      const r = await fetch('/demo/scenarios');
-      const list = await r.json();
-      const root = document.getElementById('buttons');
-      list.forEach(s => {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.innerHTML = '<strong>' + s.id + '</strong><span>' + escapeHtml(s.description) + '</span>';
-        b.onclick = () => run(s.id);
-        root.appendChild(b);
-      });
-    }
+    const GROUP_LABELS = {
+      success: 'Success & warnings',
+      registry: 'registry (first)',
+      policy: 'Policy',
+      guardrail: 'Guardrails'
+    };
 
     function escapeHtml(t) {
       const d = document.createElement('div');
@@ -70,9 +137,52 @@
       return d.innerHTML;
     }
 
+    function tagClass(group) {
+      return group === 'success' ? 'success' : group === 'registry' ? 'registry' : group === 'policy' ? 'policy' : 'guardrail';
+    }
+
+    function tagLabel(group) {
+      return group === 'success' ? 'Allow' : group === 'registry' ? 'Registry' : group === 'policy' ? 'Policy' : 'Guardrail';
+    }
+
+    async function loadScenarios() {
+      const r = await fetch('/demo/scenarios');
+      const list = await r.json();
+      const byGroup = {};
+      list.forEach(s => {
+        const g = s.group || 'success';
+        if (!byGroup[g]) byGroup[g] = [];
+        byGroup[g].push(s);
+      });
+      const order = ['success', 'registry', 'policy', 'guardrail'];
+      const root = document.getElementById('groups');
+      order.forEach(g => {
+        const items = byGroup[g];
+        if (!items || !items.length) return;
+        const sec = document.createElement('section');
+        sec.innerHTML = '<div class="group-title">' + escapeHtml(GROUP_LABELS[g] || g) + '</div><div class="buttons" data-g="' + g + '"></div>';
+        root.appendChild(sec);
+        const btnRoot = sec.querySelector('.buttons');
+        items.forEach(s => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'scenario';
+          b.innerHTML =
+            '<span class="tag ' + tagClass(g) + '">' + escapeHtml(tagLabel(g)) + '</span>' +
+            '<strong>' + escapeHtml(s.id) + '</strong>' +
+            '<span>' + escapeHtml(s.description) + '</span>';
+          b.onclick = () => run(s.id);
+          btnRoot.appendChild(b);
+        });
+      });
+    }
+
     async function run(id) {
       const out = document.getElementById('out');
-      out.textContent = 'Loading.';
+      const banner = document.getElementById('banner');
+      banner.className = 'banner';
+      banner.textContent = '';
+      out.textContent = 'Loading…';
       try {
         const r = await fetch('/demo/run', {
           method: 'POST',
@@ -85,11 +195,27 @@
         lines.push(JSON.stringify(j, null, 2));
         if (j.auditUrl) {
           lines.push('');
-          lines.push('Audit: GET ' + j.auditUrl + ' (same host)');
+          lines.push('Audit: GET ' + j.auditUrl + ' (same origin)');
         }
         out.textContent = lines.join('\n');
+        banner.classList.add('show');
+        if (r.status >= 400) {
+          banner.classList.add('err');
+          banner.textContent = 'Request failed (HTTP ' + r.status + ')';
+        } else if (j.success === true) {
+          banner.classList.add('ok');
+          banner.textContent = 'Governance: ALLOW — tool executed';
+        } else if (j.denialReasonCode) {
+          banner.classList.add('deny');
+          banner.textContent = 'Governance: DENY — ' + j.denialReasonCode + (j.denialDecisionType ? ' (' + j.denialDecisionType + ')' : '');
+        } else {
+          banner.classList.add('err');
+          banner.textContent = j.errorCode || 'Completed';
+        }
       } catch (e) {
         out.textContent = String(e);
+        banner.className = 'banner show err';
+        banner.textContent = 'Network or parse error';
       }
     }
 

@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.ComponentScan;
 
 @AutoConfiguration
-@AutoConfigureAfter(AgcOrchestratorAutoConfiguration.class)
+@AutoConfigureAfter({AgcOrchestratorAutoConfiguration.class, AgcObservabilityAutoConfiguration.class})
 @ConditionalOnClass(AgentExecuteController.class)
 @ComponentScan(basePackageClasses = AgentExecuteController.class)
 public class AgcWebAutoConfiguration {

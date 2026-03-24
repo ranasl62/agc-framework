@@ -4,6 +4,7 @@ import com.framework.agent.core.AuditEvent;
 import com.framework.agent.core.AuditEventType;
 import com.framework.agent.core.AuditPersistenceException;
 import com.framework.agent.core.AuditRecorder;
+import com.framework.agent.core.InvalidGovernanceContextException;
 import com.framework.agent.core.LlmClient;
 import com.framework.agent.core.LlmException;
 import com.framework.agent.core.ToolExecutionException;
@@ -43,6 +44,12 @@ public class AgentOrchestrator {
             String userMessage,
             Instant deadline
     ) throws LlmException, ToolInvocationDeniedException, ToolExecutionException, AuditPersistenceException {
+        if (traceId == null || traceId.isBlank()) {
+            throw new InvalidGovernanceContextException("traceId is required for orchestrated turns");
+        }
+        if (correlationId == null || correlationId.isBlank()) {
+            throw new InvalidGovernanceContextException("correlationId is required for orchestrated turns");
+        }
         var ctxForLlm = new ToolInvocationContext(
                 traceId,
                 correlationId,

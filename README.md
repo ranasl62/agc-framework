@@ -1,7 +1,10 @@
 # Agent Governance & Control (AGC)
 
-Spring Boot library for **governed** agent tool calls: **policy → guardrails → gateway**, **append-only audit**, and optional REST.  
-**Technical detail:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+Spring Boot library for **governed** agent tool calls: **gateway → tool registry → policy → guardrails → execution**, **append-only audit**, and optional REST.
+
+**Repository:** [github.com/ranasl62/agc-framework](https://github.com/ranasl62/agc-framework) · **Architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+
+**Production-oriented controls (summary):** all tool calls go through `ToolInvocationGateway`; unknown tools are denied (`TOOL_NOT_REGISTERED`); `agc.enabled` is a global kill switch; `agc.audit.mode` is `STRICT` | `ASYNC` | `BEST_EFFORT`; `agc.governance.mode` includes `PRODUCTION` (REST identity from Spring Security, not JSON alone).
 
 ## Modules (summary)
 
@@ -32,7 +35,7 @@ CI runs `mvn verify` on push/PR (`.github/workflows/ci.yml`).
 mvn -pl agc-demo-app -am spring-boot:run
 ```
 
-Then open [http://localhost:8080/](http://localhost:8080/) for the scenario UI, or call `POST /agent/execute` / `GET /audit/{traceId}` as in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Then open [http://localhost:8080/](http://localhost:8080/) for the grouped scenario UI (registry, policy, guardrails, success paths), or call `POST /agent/execute` / `GET /audit/{traceId}` as in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). **`POST /demo/run`** runs named scenarios from [`DemoScenario`](agc-demo-app/src/main/java/com/framework/agent/demo/DemoScenario.java).
 
 ## Use as a dependency
 

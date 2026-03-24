@@ -27,6 +27,16 @@ management:
       show-details: always
 
 agc:
+  enabled: true
+  governance:
+    mode: DEVELOPMENT
+  tools:
+    # Allowlist: tools not listed are denied with TOOL_NOT_REGISTERED (see demo scenario unknown_tool_not_registered).
+    allowed:
+      - search
+      - read
+      - delete_db
+      - payment_api
   policy:
     roles:
       user:
@@ -45,6 +55,7 @@ agc:
   llm:
     planned-tool-name: search
   audit:
+    mode: STRICT
     max-payload-chars: 4000
 
 logging:

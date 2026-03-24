@@ -18,7 +18,7 @@ public record ToolInvocationContext(
     public ToolInvocationContext {
         Objects.requireNonNull(traceId, "traceId");
         Objects.requireNonNull(toolName, "toolName");
-        correlationId = correlationId != null ? correlationId : traceId;
+        correlationId = (correlationId != null && !correlationId.isBlank()) ? correlationId : traceId;
         tenantId = tenantId != null ? tenantId : "";
         principalId = principalId != null ? principalId : "";
         roles = roles != null ? Set.copyOf(roles) : Set.of();

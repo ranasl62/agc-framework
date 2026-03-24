@@ -13,4 +13,13 @@
     <artifactId>agc-core</artifactId>
     <name>AGC Core</name>
     <description>Pure Java domain model and service interfaces (no Spring)</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>
