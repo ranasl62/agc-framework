@@ -61,8 +61,7 @@ Add **agc-api** for bundled REST controllers.
 
 | Doc | Purpose |
 |-----|---------|
-| [docs/PRODUCT_DEVELOPMENT_PLAN.md](docs/PRODUCT_DEVELOPMENT_PLAN.md) | Canonical product contract, phases 0–11, failure modes |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Multi-module layout, packages, auto-config, request path |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Multi-module layout, packages, auto-config, governance hardening, request path |
 | [docs/CHEAT_SHEET.md](docs/CHEAT_SHEET.md) | Build commands, Maven coords, config keys, HTTP smoke |
 | [docs/RUNBOOK.md](docs/RUNBOOK.md) | Operational checks and audit posture (MVP) |
 

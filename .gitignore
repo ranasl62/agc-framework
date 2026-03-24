@@ -53,3 +53,9 @@ secrets/
 
 # Node (if you add frontend tooling later)
 node_modules/
+
+# Cursor IDE (local / optional team sharing — not required for the framework)
+.cursor/
+
+# Internal / long-form product roadmap — keep locally if needed; not published for portfolio
+docs/PRODUCT_DEVELOPMENT_PLAN.md

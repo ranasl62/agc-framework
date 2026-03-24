@@ -1,6 +1,6 @@
 # AGC — cheat sheet
 
-Quick reference for developers and operators. Full spec: [PRODUCT_DEVELOPMENT_PLAN.md](PRODUCT_DEVELOPMENT_PLAN.md). Structure: [ARCHITECTURE.md](ARCHITECTURE.md).
+Quick reference for developers and operators. Structure: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
@@ -86,4 +86,4 @@ Planned tool for the stub LLM: **`[[tool:name]]`** in the user message, or per-s
 
 ## Operations pointer
 
-Degraded behavior and metrics naming: [RUNBOOK.md](RUNBOOK.md) and the failure matrix in [PRODUCT_DEVELOPMENT_PLAN.md](PRODUCT_DEVELOPMENT_PLAN.md#failure-modes--recovery).
+Degraded behavior: [RUNBOOK.md](RUNBOOK.md).

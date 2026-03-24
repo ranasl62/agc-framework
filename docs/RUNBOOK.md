@@ -1,6 +1,6 @@
 # AGC — operational runbook (MVP)
 
-Operational companion to [PRODUCT_DEVELOPMENT_PLAN.md](PRODUCT_DEVELOPMENT_PLAN.md#failure-modes--recovery). Tune alerts and dashboards to your environment.
+Operational companion for audit and gateway posture. Tune alerts and dashboards to your environment.
 
 ---
 

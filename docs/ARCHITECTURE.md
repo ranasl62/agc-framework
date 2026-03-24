@@ -2,7 +2,7 @@
 
 This document describes **how the repository is structured today**: Maven modules, Java packages, Spring Boot auto-configuration, and the request path through governance.
 
-**Canonical product contract** (invariants, phases, failure semantics): [PRODUCT_DEVELOPMENT_PLAN.md](PRODUCT_DEVELOPMENT_PLAN.md).
+Design goals (single gateway, policy → guardrails, append-only audit) are summarized in this file and in [RUNBOOK.md](RUNBOOK.md).
 
 ---
 
