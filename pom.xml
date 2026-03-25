@@ -53,6 +53,7 @@
         <module>agc-spring-boot-starter</module>
         <module>agc-demo-app</module>
         <module>agc-architecture-tests</module>
+        <module>agc-publish</module>
     </modules>
 
     <properties>
@@ -175,9 +176,9 @@
                     <version>3.5.0</version>
                 </plugin>
                 <plugin>
-                    <groupId>org.sonatype.plugins</groupId>
-                    <artifactId>nexus-staging-maven-plugin</artifactId>
-                    <version>1.7.0</version>
+                    <groupId>org.sonatype.central</groupId>
+                    <artifactId>central-publishing-maven-plugin</artifactId>
+                    <version>0.9.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -188,16 +189,10 @@
         </pluginManagement>
     </build>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2</url>
-        </repository>
-    </distributionManagement>
+    <!--
+      Releases: use Central Portal (see release profile — central-publishing-maven-plugin).
+      Legacy OSSRH deploy to s01.oss.sonatype.org is not used; Portal user tokens authenticate to central.sonatype.com.
+    -->
 
     <profiles>
         <profile>
@@ -251,13 +246,19 @@
                         </executions>
                     </plugin>
                     <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
                         <extensions>true</extensions>
                         <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                            <!-- Must match ~/.m2/settings.xml &lt;server&gt;&lt;id&gt; (Portal user token) -->
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>true</autoPublish>
+                            <!-- Demo and ArchUnit JARs are not published to Central; keep them out of the bundle. -->
+                            <excludeArtifacts>
+                                <excludeArtifact>agc-demo-app</excludeArtifact>
+                                <excludeArtifact>agc-architecture-tests</excludeArtifact>
+                                <excludeArtifact>agc-publish</excludeArtifact>
+                            </excludeArtifacts>
                         </configuration>
                     </plugin>
                     <plugin>

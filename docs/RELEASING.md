@@ -1,6 +1,8 @@
 # Releasing AGC to Maven Central
 
-This project is configured for **Sonatype OSSRH** (Maven Central). Library modules are deployed; **`agc-demo-app`** and **`agc-architecture-tests`** skip deploy (`maven.deploy.skip`).
+This project publishes via the **Sonatype Central Portal** ([`central-publishing-maven-plugin`](https://central.sonatype.org/publish/publish-portal-maven/)) to **Maven Central**. Library modules are included in the deployment bundle; **`agc-demo-app`**, **`agc-architecture-tests`**, and **`agc-publish`** are excluded from the Central bundle (`excludeArtifacts`) and skip Maven deploy (`maven.deploy.skip`). The **`agc-publish`** module is an empty `pom` listed **last** in the reactor so the plugin’s bundle-and-upload step runs after all other modules (the plugin only uploads from the **last** project that executes the goal).
+
+**Important:** Central Portal **user tokens** use `settings.xml` server id **`central`**, not legacy **`ossrh`** + `s01.oss.sonatype.org`. Using a Portal token against the old Nexus staging URL causes **401 Unauthorized**.
 
 ---
 
@@ -46,21 +48,23 @@ Ensure **`gpg-agent`** can sign (see troubleshooting). For CI, use a dedicated k
 
 ### 3. Maven `settings.xml`
 
+Generate a **User Token** from [central.sonatype.com](https://central.sonatype.com/) (Account / token — see [Sonatype: User tokens](https://central.sonatype.org/publish/generate-portal-token/)).
+
 Edit **`~/.m2/settings.xml`** (never commit tokens):
 
 ```xml
 <settings>
   <servers>
     <server>
-      <id>ossrh</id>
-      <username><!-- Central portal user token username --></username>
-      <password><!-- Central portal user token password --></password>
+      <id>central</id>
+      <username><!-- token username from Central Portal --></username>
+      <password><!-- token password from Central Portal --></password>
     </server>
   </servers>
 </settings>
 ```
 
-The **`id` must be `ossrh`** — it matches `<distributionManagement>` and `nexus-staging-maven-plugin` in the root `pom.xml`.
+The **`id` must be `central`** — it matches `publishingServerId` in the root `pom.xml` **`release`** profile (`central-publishing-maven-plugin`).
 
 ---
 
@@ -96,11 +100,12 @@ git tag -s v1.0.0 -m "AGC 1.0.0"
 git push origin main --tags
 ```
 
-### 4. Deploy to OSSRH (sign + stage)
+### 4. Deploy to Central Portal (sign + bundle + publish)
 
 From the repository root:
 
 ```bash
+export GPG_TTY=$(tty)
 mvn clean deploy -Prelease
 ```
 
@@ -108,9 +113,9 @@ This **release** profile:
 
 - Attaches **sources** and **javadoc** JARs  
 - **Signs** artifacts with GPG  
-- Uploads to the **staging** repository (`nexus-staging-maven-plugin`, `autoReleaseAfterClose=true`)
+- Uses **`central-publishing-maven-plugin`** to upload a bundle to **central.sonatype.com** (`autoPublish` is enabled)
 
-If `autoReleaseAfterClose` succeeds, the staging repo **closes and releases** automatically; artifacts then sync to **Maven Central** (often **15–30+ minutes**).
+After validation, artifacts sync to **Maven Central** (allow **15–30+ minutes** for search/index). You can also check **Deployments** on [central.sonatype.com](https://central.sonatype.com/).
 
 ### 5. Verify on Central
 
@@ -141,7 +146,7 @@ For **1.0.1** GA, repeat the tag + `mvn clean deploy -Prelease` flow with `1.0.1
 
 | Symptom | What to check |
 |---------|----------------|
-| **401 / 403** on deploy | `settings.xml` server **id** = `ossrh`; token not expired; namespace approved |
+| **401 / 403** on deploy | Server **id** = **`central`** (Portal token); not legacy `ossrh`. Regenerate token; no extra spaces; XML-escape `&` in password as `&amp;` |
 | **`maven-gpg-plugin` … Exit code: 2** | See **GPG exit code 2** below |
 | **Rule failure: snapshot dependencies** | Release profile enforcer: only **release** versions of dependencies (Spring Boot BOM is fine) |
 | **Missing artifacts** | Only library modules deploy; demo/arch-tests are skipped by design |
@@ -182,6 +187,17 @@ Common on Linux when Maven invokes `gpg` to sign the POM/JARs:
    mvn clean verify -Prelease -Dgpg.skip=true
    ```  
    **Do not** use `-Dgpg.skip=true` for the actual Central upload; Sonatype requires signatures.
+
+6. **Central validation: `Namespace 'com.framework.agent' is not allowed`**  
+   Your Sonatype account has not completed **namespace verification** for that `groupId`. In [central.sonatype.com](https://central.sonatype.com/) open **Namespaces**, add `com.framework.agent`, and finish the flow (DNS TXT on the domain that backs the reverse-DNS groupId, or whatever verification Sonatype offers). Until the namespace shows as **approved**, every deployment will fail for these coordinates.
+
+7. **Central validation: `Could not find a public key by the key fingerprint`**  
+   The key you used to produce the `.asc` files must be published to a **keyserver Sonatype queries** (e.g. [keys.openpgp.org](https://keys.openpgp.org/) or `keyserver.ubuntu.com`). After signing locally, upload the **public** key, then wait a few minutes and redeploy:  
+   ```bash
+   gpg --keyserver keys.openpgp.org --send-keys YOUR_KEY_ID
+   # or: gpg --keyserver keyserver.ubuntu.com --send-keys YOUR_KEY_ID
+   ```  
+   Use the same key Maven uses (`gpg --list-secret-keys` / `-Dgpg.keyname=…` if needed).
 
 ---
 

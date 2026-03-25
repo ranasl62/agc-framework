@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.framework.agent</groupId>
+        <artifactId>agc-framework</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>agc-publish</artifactId>
+    <packaging>pom</packaging>
+    <name>AGC Central publish (reactor tail)</name>
+    <description>
+        Empty aggregator after agc-architecture-tests so central-publishing-maven-plugin runs bundle+upload
+        on this module (last in reactor order), not on demo or ArchUnit modules.
+    </description>
+
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
+    <dependencies>
+        <!-- Reactor ordering only (packaging pom has no compile classpath use). -->
+        <dependency>
+            <groupId>com.framework.agent</groupId>
+            <artifactId>agc-architecture-tests</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

@@ -123,7 +123,7 @@ Summary:
 
 1. Reactor **release version** (currently **1.0.0** in this repo) on the tag you deploy.  
 2. **Sonatype** namespace for `com.framework.agent` verified.  
-3. **`settings.xml`** server **`ossrh`** + **GPG** signing.  
+3. **`settings.xml`** server **`central`** (Portal user token) + **GPG** signing.  
 4. **`mvn clean deploy -Prelease`** — demo/arch-tests **skip deploy**.  
 5. After Central sync, bump to **next SNAPSHOT** (e.g. `1.0.1-SNAPSHOT`) for continued development — see **RELEASING.md**.
 
