@@ -7,12 +7,16 @@
     <parent>
         <groupId>com.framework.agent</groupId>
         <artifactId>agc-framework</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
 
     <artifactId>agc-architecture-tests</artifactId>
     <name>AGC Architecture Tests</name>
     <description>ArchUnit governance integrity rules (runs in verify)</description>
+
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
 
     <dependencies>
         <dependency>

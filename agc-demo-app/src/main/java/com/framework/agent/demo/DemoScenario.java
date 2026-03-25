@@ -20,7 +20,7 @@ public enum DemoScenario {
     ALLOW_SEARCH_VERSIONED(
             DemoScenarioGroup.SUCCESS,
             "allow_search_versioned",
-            "Planned tool `search:v2` — registry uses logical name `search`; expect success (`echo:search:v2`).",
+            "Planned tool `search:v2` — registry uses logical name `search`; demo backend returns `version=v2`.",
             "demo-user",
             Set.of("user"),
             "Versioned search (override)",

@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -35,7 +36,8 @@ class DemoScenarioIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.scenario").value("allow_search_versioned"))
-                .andExpect(jsonPath("$.outcomeSummary").value("echo:search:v2"));
+                .andExpect(jsonPath("$.outcomeSummary", containsString("demo-backend.search")))
+                .andExpect(jsonPath("$.outcomeSummary", containsString("v2")));
     }
 
     @Test
@@ -56,7 +58,7 @@ class DemoScenarioIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.scenario").value("allow_search"))
-                .andExpect(jsonPath("$.outcomeSummary").value("echo:search"))
+                .andExpect(jsonPath("$.outcomeSummary", containsString("demo-backend.search")))
                 .andExpect(jsonPath("$.auditUrl").exists());
     }
 
@@ -67,7 +69,7 @@ class DemoScenarioIT {
                         .content("{\"scenario\":\"allow_read_with_warn\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.outcomeSummary").value("echo:read"));
+                .andExpect(jsonPath("$.outcomeSummary", containsString("demo-backend.read")));
     }
 
     @Test

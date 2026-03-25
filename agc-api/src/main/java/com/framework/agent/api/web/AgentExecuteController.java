@@ -20,8 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.URI;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
-
 @RestController
 public class AgentExecuteController {
 
@@ -55,11 +53,15 @@ public class AgentExecuteController {
         if (request.traceId() == null || request.traceId().isBlank()) {
             ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "traceId is required");
             pd.setTitle("Invalid governance context");
+            pd.setProperty("decision", "DENY");
+            pd.setProperty("reasonCode", "INVALID_CONTEXT");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
         }
         if (request.correlationId() == null || request.correlationId().isBlank()) {
             ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "correlationId is required");
             pd.setTitle("Invalid governance context");
+            pd.setProperty("decision", "DENY");
+            pd.setProperty("reasonCode", "INVALID_CONTEXT");
             pd.setProperty("traceId", request.traceId().trim());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
         }
@@ -70,6 +72,8 @@ public class AgentExecuteController {
                     "Authentication required when agc.governance.mode=PRODUCTION"
             );
             pd.setTitle("Authentication required");
+            pd.setProperty("decision", "DENY");
+            pd.setProperty("reasonCode", "AUTH_REQUIRED");
             pd.setProperty("traceId", traceId);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(pd);
         }
@@ -82,7 +86,7 @@ public class AgentExecuteController {
                     request.correlationId().trim(),
                     request.tenantId() != null ? request.tenantId() : "",
                     principalId,
-                    request.roles() != null ? Set.copyOf(request.roles()) : Set.of(),
+                    TrustBoundaryPrincipalResolver.resolveRoles(request.roles()),
                     request.message() != null ? request.message() : "",
                     null
             );
@@ -90,6 +94,7 @@ public class AgentExecuteController {
         } catch (com.framework.agent.core.ToolInvocationDeniedException e) {
             ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.getDecision().reasonCode());
             pd.setTitle("Tool invocation denied");
+            pd.setProperty("decision", e.getDecision().type().name());
             pd.setProperty("reasonCode", e.getDecision().reasonCode());
             pd.setProperty("matchedRuleIds", e.getDecision().matchedRuleIds());
             pd.setProperty("traceId", traceId);
@@ -97,6 +102,8 @@ public class AgentExecuteController {
         } catch (InvalidGovernanceContextException e) {
             ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
             pd.setTitle("Invalid governance context");
+            pd.setProperty("decision", "DENY");
+            pd.setProperty("reasonCode", "INVALID_CONTEXT");
             pd.setProperty("traceId", traceId);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
         } catch (GovernedPathAuditException e) {
@@ -105,6 +112,8 @@ public class AgentExecuteController {
                     "Audit persistence failed on governed path"
             );
             pd.setTitle("Governed path audit failure");
+            pd.setProperty("decision", "DENY");
+            pd.setProperty("reasonCode", "AUDIT_FAILURE");
             pd.setProperty("traceId", traceId);
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(pd);
         } catch (Exception e) {

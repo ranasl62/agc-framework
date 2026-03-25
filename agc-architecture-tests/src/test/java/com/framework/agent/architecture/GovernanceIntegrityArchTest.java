@@ -14,6 +14,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 @AnalyzeClasses(packages = "com.framework.agent", importOptions = ImportOption.DoNotIncludeTests.class)
 class GovernanceIntegrityArchTest {
 
+    // agc-demo implements McpToolExecutor and may use GatewayContextHolder — exempt via package com.framework.agent.demo..
+
     private static final DescribedPredicate<JavaCall> MCP_EXECUTOR_EXECUTE =
             new DescribedPredicate<>("call McpToolExecutor.execute") {
                 @Override
@@ -29,7 +31,8 @@ class GovernanceIntegrityArchTest {
                     .that()
                     .resideOutsideOfPackages(
                             "com.framework.agent.mcp..",
-                            "com.framework.agent.autoconfigure.."
+                            "com.framework.agent.autoconfigure..",
+                            "com.framework.agent.demo.."
                     )
                     .should()
                     .dependOnClassesThat()
@@ -44,4 +47,17 @@ class GovernanceIntegrityArchTest {
                     .resideOutsideOfPackages("com.framework.agent.architecture..")
                     .should()
                     .callMethodWhere(MCP_EXECUTOR_EXECUTE);
+
+    @ArchTest
+    static final ArchRule noGatewayScopeSpoofingOutsideMcp =
+            noClasses()
+                    .that()
+                    .resideOutsideOfPackages(
+                            "com.framework.agent.mcp..",
+                            "com.framework.agent.architecture..",
+                            "com.framework.agent.demo.."
+                    )
+                    .should()
+                    .dependOnClassesThat()
+                    .haveFullyQualifiedName("com.framework.agent.mcp.GatewayContextHolder");
 }

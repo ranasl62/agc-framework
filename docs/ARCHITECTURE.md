@@ -1,6 +1,8 @@
 # AGC — architecture & reference
 
-How the repo is structured: modules, auto-configuration order, governance behavior, and how to run the demo.
+How the repo is structured: modules, auto-configuration order, runtime wiring, and how to run the demo.
+
+**Also see:** [LIBRARY.md](LIBRARY.md) (Maven name, why adopt, discoverability), [USAGE.md](USAGE.md) (feature usage, sequence, data, exceptions), [GOVERNANCE.md](GOVERNANCE.md) (decisions, reason codes), [FAILURE_MODES.md](FAILURE_MODES.md) (audit modes, failures), [QUICKSTART.md](QUICKSTART.md) (minimal app).
 
 ---
 
@@ -79,14 +81,12 @@ Chain: **Storage** (after `DataSourceAutoConfiguration`) → **Audit** → **Pol
 
 ## Governance (runtime)
 
-- **Trusted entry point:** only **`ToolInvocationGateway`** (default `DefaultToolInvocationGateway`). Internal **`McpToolExecutor`** must not be called from application layers; **`GatewayContextHolder`** enforces this at runtime (`IllegalStateException`: **"Direct execution forbidden"**).
-- Gateway requires **non-blank `traceId`, `correlationId`, and `toolName`**; pipeline returns a **non-null** decision; **`DecisionType.DENY`** → no tool execution.
-- **Tool registry (first):** optional allowlist `agc.tools.allowed`. If non-empty, **`ToolNames.logicalName`** is used (supports **`tool:vN`** versioning); unknown tools → **`TOOL_NOT_REGISTERED`** before policy runs.
-- **Kill switch:** `agc.enabled: false` denies all tool invocations with reason **`AGC_DISABLED`** (audit follows `agc.audit.mode`; **STRICT** fails closed if that audit cannot be written).
-- **`agc.governance.mode`:** **`DEVELOPMENT`** \| **`STAGING`** \| **`PRODUCTION`**. **`PRODUCTION`** → **`POST /agent/execute`** returns **401** unless Spring Security has a non-anonymous principal (body `principalId` is not trusted alone).
-- Audit mode **`agc.audit.mode`:** **`STRICT`** (default) — fail closed on governed-path audit errors; **`BEST_EFFORT`** — log and continue (not for regulated production); **`ASYNC`** — queue-backed writes via **`agcAuditAsyncExecutor`** (non-blocking).
-- Failed required audit writes in **`STRICT`** → **`GovernedPathAuditException`**. **`agc.audit.strict-secondary-audit`** (default `true`) controls strict handling for **`SYSTEM_ERROR`** rows after tool failures when mode is **`STRICT`**.
-- Evaluator exceptions → **DENY** with stable reason codes.
+- **Trusted entry point:** **`ToolInvocationGateway`** only; internal **`McpToolExecutor`** is blocked outside the gateway (**`GatewayContextHolder`**, ArchUnit). Direct call → **`IllegalStateException`**: **"Direct execution forbidden"**.
+- **Governance pipeline:** registry (optional allowlist) → policy → guardrails → execution; **`DecisionType.DENY`** → no tool execution. Decisions and reason codes: [GOVERNANCE.md](GOVERNANCE.md).
+- **Tool registry (first):** `agc.tools.allowed`; logical names and **`tool:vN`**: see **Tool versioning** below. Unknown tool → **`TOOL_NOT_REGISTERED`** before policy.
+- **Kill switch:** `agc.enabled: false` → **`AGC_DISABLED`**. Audit behavior by mode: [FAILURE_MODES.md](FAILURE_MODES.md).
+- **`agc.governance.mode`:** **`DEVELOPMENT`** \| **`STAGING`** \| **`PRODUCTION`**. **`PRODUCTION`** → **`POST /agent/execute`** returns **401** without authenticated Spring Security principal.
+- **`agc.audit.mode`:** **`STRICT`** \| **`ASYNC`** \| **`BEST_EFFORT`** — see [FAILURE_MODES.md](FAILURE_MODES.md). **`agc.audit.strict-secondary-audit`** (default `true`) applies to **`SYSTEM_ERROR`** after tool failure in **STRICT**.
 
 ### Conceptual execution lifecycle (audit + gateway)
 
@@ -131,6 +131,7 @@ Use **`-am`** so sibling modules build in the reactor; otherwise install snapsho
 | `agc.llm.planned-tool-name` | Stub LLM default tool |
 | `agc.audit.mode` | `STRICT` \| `BEST_EFFORT` \| `ASYNC` (async executor bean) |
 | `agc.audit.max-payload-chars` | Bound stored payload text |
+| `agc.audit.hash-payload` | Optional SHA-256 payload hash (`false` by default) |
 | `agc.audit.strict-secondary-audit` | Default `true`: fail if `SYSTEM_ERROR` audit cannot be written after tool failure when mode is `STRICT` |
 
 Example: `agc-demo-app/src/main/resources/application.yml`.
@@ -172,6 +173,21 @@ curl -s -X POST http://localhost:8080/agent/execute \
 | Audit / DB errors | Datasource, Flyway, DB reachability |
 | Invalid auto-config at startup | Clean build; autoconfigure lives only in **`agc-spring-boot-autoconfigure`** |
 
+## Production operations notes
+
+- Keep policy / guardrail evaluators CPU-only and non-blocking; network calls in evaluators increase governance latency and failure blast radius.
+- Default recommendation: `agc.audit.mode=STRICT` for regulated production; use `ASYNC` only with queue/backpressure monitoring.
+- Typical datasource baseline for audit-heavy services (Hikari):
+  - `spring.datasource.hikari.maximum-pool-size: 20`
+  - `spring.datasource.hikari.minimum-idle: 5`
+  - `spring.datasource.hikari.connection-timeout: 30000`
+  - tune per deployment throughput and DB limits.
+- Key metrics:
+  - `agc_decisions_total{decision,reasonCode}`
+  - `agc_gateway_latency_ms{outcome}`
+  - `agc_audit_write_failures_total`
+  - `agc_audit_latency_ms`
+
 ---
 
 ## Integration notes
@@ -185,7 +201,7 @@ Dependency:
 <dependency>
   <groupId>com.framework.agent</groupId>
   <artifactId>agc-spring-boot-starter</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>1.0.0</version>
 </dependency>
 ```
 

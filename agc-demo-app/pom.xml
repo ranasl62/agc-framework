@@ -7,15 +7,17 @@
     <parent>
         <groupId>com.framework.agent</groupId>
         <artifactId>agc-framework</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
 
     <artifactId>agc-demo-app</artifactId>
     <name>AGC Demo Application</name>
-    <description>Sample app: starter + REST API + H2</description>
+    <description>Runnable sample: starter + REST + H2, demo tool backends, JSON-RPC MCP bridge</description>
 
     <properties>
         <spring-boot.run.skip>false</spring-boot.run.skip>
+        <!-- Sample app is not published to Maven Central -->
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <dependencies>

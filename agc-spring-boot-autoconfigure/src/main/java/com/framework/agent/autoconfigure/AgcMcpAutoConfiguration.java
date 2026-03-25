@@ -27,7 +27,9 @@ import org.springframework.context.annotation.Bean;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Order: Storage → Audit → Policy → Guardrail → ToolRegistry (bean) → MCP gateway → Orchestrator → Observability.
@@ -65,11 +67,19 @@ public class AgcMcpAutoConfiguration {
     @Bean(name = "agcAuditAsyncExecutor", destroyMethod = "shutdown")
     @ConditionalOnProperty(prefix = "agc.audit", name = "mode", havingValue = "ASYNC")
     public ExecutorService agcAuditAsyncExecutor() {
-        return Executors.newFixedThreadPool(2, r -> {
-            Thread t = new Thread(r, "agc-audit-async");
-            t.setDaemon(true);
-            return t;
-        });
+        return new ThreadPoolExecutor(
+                2,
+                2,
+                0L,
+                TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(1000),
+                r -> {
+                    Thread t = new Thread(r, "agc-audit-async");
+                    t.setDaemon(true);
+                    return t;
+                },
+                new ThreadPoolExecutor.AbortPolicy()
+        );
     }
 
     @Bean

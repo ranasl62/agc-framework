@@ -93,34 +93,89 @@
     .banner.deny { background: #fee2e2; color: var(--deny); }
     .banner.err { background: #fef3c7; color: var(--warn); }
     code.inline { font-size: 0.8em; background: #f1f5f9; padding: 0.1rem 0.35rem; border-radius: 4px; }
+    .quick-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    button.quick {
+      padding: 0.75rem 0.85rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-align: left;
+      line-height: 1.35;
+    }
+    button.quick:hover { border-color: var(--accent); background: #eff6ff; }
+    button.quick small { display: block; font-weight: 400; color: var(--muted); font-size: 0.75rem; margin-top: 0.2rem; }
+    .audit-panel {
+      font-size: 0.82rem;
+      color: #334155;
+      max-height: 14rem;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      background: #f8fafc;
+    }
+    .audit-panel ol { margin: 0.35rem 0 0; padding-left: 1.1rem; }
+    .audit-panel li { margin: 0.25rem 0; font-family: ui-monospace, monospace; font-size: 0.76rem; }
+    .muted-hint { font-size: 0.8rem; color: var(--muted); margin: 0 0 0.5rem; }
   </style>
 </head>
 <body>
   <header>
     <h1>Agent Governance &amp; Control</h1>
-    <p>Run scenarios against the gateway: registry → policy → guardrails → MCP executor, with append-only audit.</p>
+    <p>End-to-end demo: stub “LLM” → <strong>ToolInvocationGateway</strong> → governed tools that call <strong>demo backend APIs</strong>, plus an HTTP <strong>JSON-RPC MCP bridge</strong> (<code class="inline">POST /demo/mcp</code>) that also routes through the gateway.</p>
     <div class="meta">
       <span class="pill">Demo · DEVELOPMENT governance</span>
       <a href="https://github.com/ranasl62/agc-framework" target="_blank" rel="noopener">Source on GitHub</a>
       <a href="/actuator/health">Health</a>
       <a href="/h2-console" target="_blank" rel="noopener">H2 console</a>
       <a href="/demo/scenarios">GET /demo/scenarios</a>
+      <a href="/demo/backend/search?q=demo">GET /demo/backend/search</a>
     </div>
   </header>
 
   <div class="panel">
-    <h2>Try scenarios</h2>
-    <p style="margin:0 0 1rem; font-size:0.9rem; color:#64748b;">Each run uses <code class="inline">POST /demo/run</code> with a JSON body. Responses include <code class="inline">auditUrl</code> for <code class="inline">GET /audit/{traceId}</code>.</p>
+    <h2>MCP bridge (JSON-RPC)</h2>
+    <p class="muted-hint"><code class="inline">POST /demo/mcp</code> with <code class="inline">tools/list</code>, <code class="inline">tools/call</code>, or <code class="inline">initialize</code>. Each <code class="inline">tools/call</code> uses the same gateway as <code class="inline">POST /demo/run</code>.</p>
+    <pre class="out" style="max-height:12rem;font-size:0.72rem">curl -s -X POST http://localhost:8080/demo/mcp -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"search","arguments":{"q":"audit"},"context":{"traceId":"mcp-1","correlationId":"mcp-1","tenantId":"demo","principalId":"demo-user","roles":["user"]}}}'</pre>
+  </div>
+
+  <div class="panel">
+    <h2>Quick try (3 paths)</h2>
+    <p class="muted-hint">Allowed tool · policy deny · guardrail deny — same flow as the full list below.</p>
+    <div class="quick-row">
+      <button type="button" class="quick" onclick="run('allow_search')">Allow<small>user + search → success</small></button>
+      <button type="button" class="quick" onclick="run('policy_deny_forbidden_tool')">Policy deny<small>user + delete_db</small></button>
+      <button type="button" class="quick" onclick="run('guardrail_deny_payment')">Guardrail deny<small>admin + payment_api</small></button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>All scenarios</h2>
+    <p class="muted-hint">Each run: <code class="inline">POST /demo/run</code> with <code class="inline">{"scenario":"…"}</code>. Response includes <code class="inline">auditUrl</code>.</p>
     <div id="groups"></div>
   </div>
 
   <div class="panel">
     <h2>Last response</h2>
     <div id="banner" class="banner" role="status"></div>
-    <pre id="out" class="out">Pick a scenario or use curl:</pre>
-    <p style="margin:0.75rem 0 0; font-size:0.8rem; color:#64748b;">
-      <code class="inline">curl -s -X POST http://localhost:8080/agent/execute -H 'Content-Type: application/json' -d '{"traceId":"t-1","correlationId":"c-1","principalId":"u1","roles":["user"],"message":"hello"}'</code>
+    <pre id="out" class="out">Pick a scenario above or use curl.</pre>
+    <p class="muted-hint" style="margin-top:0.75rem">
+      <code class="inline">curl -s -X POST http://localhost:8080/agent/execute -H 'Content-Type: application/json' -d '{"traceId":"t-1","correlationId":"c-1","principalId":"u1","roles":["user"],"message":"Use [[tool:search]]"}'</code>
     </p>
+  </div>
+
+  <div class="panel">
+    <h2>Audit trail</h2>
+    <p class="muted-hint">Events for the last run’s <code class="inline">traceId</code>, ordered by <code class="inline">sequenceNum</code>.</p>
+    <div id="auditBox" class="audit-panel">Run a scenario to load <code class="inline">GET /audit/{traceId}</code>.</div>
   </div>
 
   <script>
@@ -198,6 +253,11 @@
           lines.push('Audit: GET ' + j.auditUrl + ' (same origin)');
         }
         out.textContent = lines.join('\n');
+        if (j.traceId && j.auditUrl) {
+          loadAudit(j.traceId);
+        } else {
+          document.getElementById('auditBox').textContent = 'No traceId/auditUrl in response.';
+        }
         banner.classList.add('show');
         if (r.status >= 400) {
           banner.classList.add('err');
@@ -216,6 +276,41 @@
         out.textContent = String(e);
         banner.className = 'banner show err';
         banner.textContent = 'Network or parse error';
+        document.getElementById('auditBox').textContent = '—';
+      }
+    }
+
+    async function loadAudit(traceId) {
+      const box = document.getElementById('auditBox');
+      box.textContent = 'Loading audit…';
+      try {
+        const r = await fetch('/audit/' + encodeURIComponent(traceId));
+        if (!r.ok) {
+          box.textContent = 'GET /audit failed: HTTP ' + r.status;
+          return;
+        }
+        const events = await r.json();
+        if (!events.length) {
+          box.textContent = 'No events yet for traceId=' + traceId;
+          return;
+        }
+        const ol = document.createElement('ol');
+        events.forEach(ev => {
+          const li = document.createElement('li');
+          const parts = [
+            '#' + ev.sequenceNum,
+            ev.eventType,
+            ev.toolName ? 'tool=' + ev.toolName : '',
+            ev.reasonCode ? 'reason=' + ev.reasonCode : ''
+          ].filter(Boolean);
+          li.textContent = parts.join(' · ');
+          ol.appendChild(li);
+        });
+        box.textContent = '';
+        box.appendChild(document.createTextNode('traceId: ' + traceId));
+        box.appendChild(ol);
+      } catch (e) {
+        box.textContent = String(e);
       }
     }
 

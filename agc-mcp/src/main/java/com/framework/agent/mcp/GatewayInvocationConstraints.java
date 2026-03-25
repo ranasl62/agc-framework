@@ -1,6 +1,7 @@
 package com.framework.agent.mcp;
 
 import com.framework.agent.core.InvalidGovernanceContextException;
+import com.framework.agent.core.ToolNames;
 import com.framework.agent.core.ToolInvocationContext;
 
 final class GatewayInvocationConstraints {
@@ -20,6 +21,9 @@ final class GatewayInvocationConstraints {
         }
         if (ctx.toolName() == null || ctx.toolName().isBlank()) {
             throw new InvalidGovernanceContextException("toolName is required before gateway invocation");
+        }
+        if (!ToolNames.isValid(ctx.toolName())) {
+            throw new InvalidGovernanceContextException("toolName must match name or name:vN");
         }
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class AgcAuditProperties {
 
     private int maxPayloadChars = 4000;
+    private boolean hashPayload = false;
 
     /**
      * When true (default), failure to persist SYSTEM_ERROR after a tool failure aborts with
@@ -26,6 +27,14 @@ public class AgcAuditProperties {
 
     public void setMaxPayloadChars(int maxPayloadChars) {
         this.maxPayloadChars = maxPayloadChars;
+    }
+
+    public boolean isHashPayload() {
+        return hashPayload;
+    }
+
+    public void setHashPayload(boolean hashPayload) {
+        this.hashPayload = hashPayload;
     }
 
     public boolean isStrictSecondaryAudit() {

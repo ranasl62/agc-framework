@@ -117,4 +117,64 @@ class DefaultToolInvocationGatewayTest {
         assertEquals("ok", r.outcomeSummary());
         verify(executor).execute(any());
     }
+
+    @Test
+    void asyncAuditQueueRejectionFailsClosed() throws Exception {
+        GovernancePipeline pipeline = mock(GovernancePipeline.class);
+        when(pipeline.evaluatePreInvocation(any())).thenReturn(GovernanceDecision.allow());
+        McpToolExecutor executor = mock(McpToolExecutor.class);
+        AuditRecorder recorder = mock(AuditRecorder.class);
+        AgcRuntimeProperties runtime = new AgcRuntimeProperties();
+        AgcAuditProperties audit = new AgcAuditProperties();
+        audit.setMode(AuditMode.ASYNC);
+        var g = new DefaultToolInvocationGateway(
+                pipeline,
+                executor,
+                recorder,
+                audit,
+                runtime,
+                t -> true,
+                task -> {
+                    throw new java.util.concurrent.RejectedExecutionException("queue full");
+                },
+                null
+        );
+
+        assertThrows(GovernedPathAuditException.class, () -> g.invoke(ctx("search")));
+        verify(executor, never()).execute(any());
+    }
+
+    @Test
+    void invalidToolNameFormatIsRejected() {
+        GovernancePipeline pipeline = mock(GovernancePipeline.class);
+        McpToolExecutor executor = mock(McpToolExecutor.class);
+        AuditRecorder recorder = mock(AuditRecorder.class);
+        AgcRuntimeProperties runtime = new AgcRuntimeProperties();
+        var g = gateway(pipeline, executor, recorder, AuditMode.STRICT, runtime, t -> true);
+        ToolInvocationContext bad = new ToolInvocationContext(
+                "trace-1",
+                "corr-1",
+                "",
+                "p1",
+                Set.of("user"),
+                "search:vx",
+                Map.of(),
+                null
+        );
+        assertThrows(com.framework.agent.core.InvalidGovernanceContextException.class, () -> g.invoke(bad));
+    }
+
+    @Test
+    void mcpFailureStillAuditsSystemError() throws Exception {
+        GovernancePipeline pipeline = mock(GovernancePipeline.class);
+        when(pipeline.evaluatePreInvocation(any())).thenReturn(GovernanceDecision.allow());
+        McpToolExecutor executor = mock(McpToolExecutor.class);
+        when(executor.execute(any())).thenThrow(new com.framework.agent.core.ToolExecutionException("boom", null));
+        AuditRecorder recorder = mock(AuditRecorder.class);
+        AgcRuntimeProperties runtime = new AgcRuntimeProperties();
+        var g = gateway(pipeline, executor, recorder, AuditMode.STRICT, runtime, t -> true);
+
+        assertThrows(com.framework.agent.core.ToolExecutionException.class, () -> g.invoke(ctx("search")));
+        verify(recorder, org.mockito.Mockito.atLeast(3)).record(any());
+    }
 }

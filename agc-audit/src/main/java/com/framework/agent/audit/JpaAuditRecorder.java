@@ -13,6 +13,9 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.Instant;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +44,7 @@ public class JpaAuditRecorder implements AuditRecorder {
     @Override
     @Transactional
     public void record(AuditEvent event) throws AuditPersistenceException {
+        Instant start = Instant.now();
         try {
             long seq = event.sequence() == AuditEvent.SEQUENCE_AUTO
                     ? sequenceAllocator.nextSequence(event.traceId())
@@ -53,7 +57,11 @@ public class JpaAuditRecorder implements AuditRecorder {
             e.setEventType(event.type().name());
             e.setToolName(event.toolName());
             e.setPayloadSummary(summary);
-            e.setPayloadHash(event.payloadHash());
+            String hash = event.payloadHash();
+            if ((hash == null || hash.isBlank()) && properties.isHashPayload()) {
+                hash = sha256(summary);
+            }
+            e.setPayloadHash(hash);
             if (event.decision() != null) {
                 GovernanceDecision d = event.decision();
                 e.setDecisionType(d.type().name());
@@ -66,11 +74,32 @@ public class JpaAuditRecorder implements AuditRecorder {
                 }
             }
             auditEventRepository.save(e);
+            if (meterRegistry != null) {
+                long latencyMs = java.time.Duration.between(start, Instant.now()).toMillis();
+                meterRegistry.timer("agc.audit.latency.ms").record(java.time.Duration.ofMillis(latencyMs));
+                meterRegistry.timer("agc_audit_latency_ms").record(java.time.Duration.ofMillis(latencyMs));
+            }
         } catch (Exception ex) {
             if (meterRegistry != null) {
                 meterRegistry.counter("agc.audit.write.failures").increment();
+                meterRegistry.counter("agc_audit_write_failures_total").increment();
             }
             throw new AuditPersistenceException("Audit persist failed for trace " + event.traceId(), ex);
+        }
+    }
+
+    private static String sha256(String text) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest((text == null ? "" : text).getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder(digest.length * 2);
+            for (byte b : digest) {
+                sb.append(Character.forDigit((b >>> 4) & 0xF, 16));
+                sb.append(Character.forDigit(b & 0xF, 16));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            throw new IllegalStateException("SHA-256 unavailable", e);
         }
     }
 }

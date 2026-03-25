@@ -1,6 +1,8 @@
 package com.framework.agent.demo;
 
 import com.framework.agent.core.LlmClient;
+import com.framework.agent.demo.backend.DemoToolBackend;
+import com.framework.agent.mcp.internal.McpToolExecutor;
 import com.framework.agent.orchestrator.LlmStubProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,5 +15,11 @@ public class DemoConfiguration {
     @Primary
     public LlmClient demoLlmClient(LlmStubProperties properties) {
         return new DemoLlmClient(properties);
+    }
+
+    @Bean
+    @Primary
+    public McpToolExecutor demoMcpToolExecutor(DemoToolBackend backend) {
+        return new DemoMcpToolExecutor(backend);
     }
 }

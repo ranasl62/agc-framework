@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
  */
 public final class ToolNames {
 
+    private static final Pattern TOOL_NAME = Pattern.compile("^[a-zA-Z0-9_\\-]+(?::v[0-9]+)?$");
     private static final Pattern VERSION_SUFFIX = Pattern.compile("^(.+):v([0-9]+)$", Pattern.CASE_INSENSITIVE);
 
     private ToolNames() {
@@ -28,5 +29,15 @@ public final class ToolNames {
             return m.group(1).toLowerCase(Locale.ROOT);
         }
         return t.toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * Valid tools: {@code name} or {@code name:vN}, where {@code name} matches {@code [a-zA-Z0-9_-]+}.
+     */
+    public static boolean isValid(String toolName) {
+        if (toolName == null || toolName.isBlank()) {
+            return false;
+        }
+        return TOOL_NAME.matcher(toolName.trim()).matches();
     }
 }

@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 
 /**
  * Enforced flow: {@code Gateway → ToolRegistry → Policy/Guardrails → Executor}.
@@ -76,6 +77,7 @@ public class DefaultToolInvocationGateway implements ToolInvocationGateway {
             if (!runtimeProperties.isEnabled()) {
                 MDC.put("decision", DecisionType.DENY.name());
                 MDC.put("reasonCode", "AGC_DISABLED");
+                recordDecisionMetric(DecisionType.DENY.name(), "AGC_DISABLED");
                 GovernanceDecision kill = GovernanceDecision.deny(
                         "AGC_DISABLED",
                         List.of("agc"),
@@ -95,6 +97,7 @@ public class DefaultToolInvocationGateway implements ToolInvocationGateway {
                 );
                 MDC.put("decision", DecisionType.DENY.name());
                 MDC.put("reasonCode", "TOOL_NOT_REGISTERED");
+                recordDecisionMetric(DecisionType.DENY.name(), "TOOL_NOT_REGISTERED");
                 persistGovernedAudit(ctx, regDeny, AuditEventType.GOVERNANCE_DECISION, summarizeDecision(regDeny));
                 log.info("agc.decision=DENY reasonCode=TOOL_NOT_REGISTERED traceId={} tool={}",
                         ctx.traceId(), ctx.toolName());
@@ -110,6 +113,7 @@ public class DefaultToolInvocationGateway implements ToolInvocationGateway {
             persistGovernedAudit(ctx, decision, AuditEventType.GOVERNANCE_DECISION, summarizeDecision(decision));
             MDC.put("decision", decision.type().name());
             MDC.put("reasonCode", decision.reasonCode());
+            recordDecisionMetric(decision.type().name(), decision.reasonCode());
             log.info("agc.decision={} reasonCode={} traceId={} correlationId={} tool={}",
                     decision.type(), decision.reasonCode(), ctx.traceId(), ctx.correlationId(), ctx.toolName());
 
@@ -148,6 +152,7 @@ public class DefaultToolInvocationGateway implements ToolInvocationGateway {
         if (meterRegistry != null) {
             meterRegistry.timer("agc.gateway.invoke.latency", "outcome", outcome).record(Duration.ofMillis(ms));
             meterRegistry.counter("agc.gateway.invoke.outcomes", "outcome", outcome).increment();
+            meterRegistry.timer("agc_gateway_latency_ms", "outcome", outcome).record(Duration.ofMillis(ms));
         }
     }
 
@@ -219,13 +224,20 @@ public class DefaultToolInvocationGateway implements ToolInvocationGateway {
             if (auditAsyncExecutor == null) {
                 throw new IllegalStateException("agc.audit.mode=ASYNC requires agcAuditAsyncExecutor bean");
             }
-            auditAsyncExecutor.execute(() -> {
-                try {
-                    auditRecorder.record(event);
-                } catch (AuditPersistenceException e) {
-                    log.error("agc.audit mode=ASYNC: persist failed phase={} traceId={}", phase, event.traceId(), e);
-                }
-            });
+            try {
+                auditAsyncExecutor.execute(() -> {
+                    try {
+                        auditRecorder.record(event);
+                    } catch (AuditPersistenceException e) {
+                        log.error("agc.audit mode=ASYNC: persist failed phase={} traceId={}", phase, event.traceId(), e);
+                    }
+                });
+            } catch (RejectedExecutionException e) {
+                throw new GovernedPathAuditException(
+                        "ASYNC audit enqueue failed phase=" + phase + "; failing closed",
+                        e
+                );
+            }
             return;
         }
         if (mode == AuditMode.BEST_EFFORT) {
@@ -275,13 +287,17 @@ public class DefaultToolInvocationGateway implements ToolInvocationGateway {
             return;
         }
         if (auditProperties.getMode() == AuditMode.ASYNC && auditAsyncExecutor != null) {
-            auditAsyncExecutor.execute(() -> {
-                try {
-                    auditRecorder.record(event);
-                } catch (AuditPersistenceException e) {
-                    log.warn("agc.audit mode=ASYNC: SYSTEM_ERROR persist failed traceId={}", ctx.traceId(), e);
-                }
-            });
+            try {
+                auditAsyncExecutor.execute(() -> {
+                    try {
+                        auditRecorder.record(event);
+                    } catch (AuditPersistenceException e) {
+                        log.warn("agc.audit mode=ASYNC: SYSTEM_ERROR persist failed traceId={}", ctx.traceId(), e);
+                    }
+                });
+            } catch (RejectedExecutionException e) {
+                log.error("agc.audit mode=ASYNC: SYSTEM_ERROR enqueue failed traceId={}", ctx.traceId(), e);
+            }
             return;
         }
         try {
@@ -293,5 +309,16 @@ public class DefaultToolInvocationGateway implements ToolInvocationGateway {
 
     private static String summarizeDecision(GovernanceDecision d) {
         return d.type() + ":" + d.reasonCode() + ":" + String.join(",", d.matchedRuleIds());
+    }
+
+    private void recordDecisionMetric(String decision, String reasonCode) {
+        if (meterRegistry == null) {
+            return;
+        }
+        meterRegistry.counter(
+                "agc_decisions_total",
+                "decision", decision == null ? "" : decision,
+                "reasonCode", reasonCode == null ? "" : reasonCode
+        ).increment();
     }
 }
