@@ -11,7 +11,7 @@ This project publishes via the **Sonatype Central Portal** ([`central-publishing
 ### 1. Register with Sonatype
 
 1. Create an account at [central.sonatype.com](https://central.sonatype.com/) (or legacy [issues.sonatype.org](https://issues.sonatype.org/) if you still use JIRA).
-2. **Verify namespace** for your `groupId`. For **`com.framework.agent`** you must prove you own that domain (DNS TXT record) **or** use a GitHub-based verification if Sonatype offers it for your coordinates.
+2. **Verify namespace** for your `groupId`. This project uses **`io.github.ranasl62`** — prove GitHub ownership (public repo named after Sonatype’s verification key) per [Central: verify ownership](https://central.sonatype.org/faq/verify-ownership/). For a domain-backed `groupId`, use DNS TXT instead.
 3. Wait until the namespace is **approved** before deploying.
 
 ### 2. Install GPG and create a signing key
@@ -119,7 +119,7 @@ After validation, artifacts sync to **Maven Central** (allow **15–30+ minutes*
 
 ### 5. Verify on Central
 
-- [search.maven.org — `g:com.framework.agent`](https://search.maven.org/search?q=g:com.framework.agent)  
+- [search.maven.org — `g:io.github.ranasl62`](https://search.maven.org/search?q=g:io.github.ranasl62)  
 - Confirm **`agc-spring-boot-starter`** and transitive library artifacts appear.
 
 ---
@@ -188,8 +188,8 @@ Common on Linux when Maven invokes `gpg` to sign the POM/JARs:
    ```  
    **Do not** use `-Dgpg.skip=true` for the actual Central upload; Sonatype requires signatures.
 
-6. **Central validation: `Namespace 'com.framework.agent' is not allowed`**  
-   Your Sonatype account has not completed **namespace verification** for that `groupId`. In [central.sonatype.com](https://central.sonatype.com/) open **Namespaces**, add `com.framework.agent`, and finish the flow (DNS TXT on the domain that backs the reverse-DNS groupId, or whatever verification Sonatype offers). Until the namespace shows as **approved**, every deployment will fail for these coordinates.
+6. **Central validation: `Namespace '…' is not allowed`**  
+   Your Sonatype account has not completed **namespace verification** for the `groupId` in the POM (`io.github.ranasl62`). In [central.sonatype.com](https://central.sonatype.com/) open **Namespaces**, add it, and finish verification (e.g. public GitHub repo named after the verification key for `io.github.*`). Until the namespace shows as **approved**, every deployment will fail for these coordinates.
 
 7. **Central validation: `Could not find a public key by the key fingerprint`**  
    The key you used to produce the `.asc` files must be published to a **keyserver Sonatype queries** (e.g. [keys.openpgp.org](https://keys.openpgp.org/) or `keyserver.ubuntu.com`). After signing locally, upload the **public** key, then wait a few minutes and redeploy:  

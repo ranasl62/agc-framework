@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.framework.agent</groupId>
+        <groupId>io.github.ranasl62</groupId>
         <artifactId>agc-framework</artifactId>
         <version>1.0.0</version>
     </parent>
@@ -22,11 +22,11 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.framework.agent</groupId>
+            <groupId>io.github.ranasl62</groupId>
             <artifactId>agc-spring-boot-starter</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.framework.agent</groupId>
+            <groupId>io.github.ranasl62</groupId>
             <artifactId>agc-api</artifactId>
         </dependency>
         <dependency>

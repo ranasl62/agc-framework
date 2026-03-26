@@ -199,7 +199,7 @@ Dependency:
 
 ```xml
 <dependency>
-  <groupId>com.framework.agent</groupId>
+  <groupId>io.github.ranasl62</groupId>
   <artifactId>agc-spring-boot-starter</artifactId>
   <version>1.0.0</version>
 </dependency>

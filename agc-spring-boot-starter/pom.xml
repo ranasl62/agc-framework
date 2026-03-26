@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.framework.agent</groupId>
+        <groupId>io.github.ranasl62</groupId>
         <artifactId>agc-framework</artifactId>
         <version>1.0.0</version>
     </parent>
@@ -14,13 +14,13 @@
     <name>AGC Spring Boot Starter (Agent Governance &amp; Control)</name>
     <description>
         Primary entry point for AGC on Maven Central: Spring Boot auto-configuration for governed AI/LLM tool execution
-        (gateway, policy, guardrails, audit). Coordinates com.framework.agent:agc-spring-boot-starter.
+        (gateway, policy, guardrails, audit). Coordinates io.github.ranasl62:agc-spring-boot-starter.
         Add agc-api for REST execute/audit endpoints.
     </description>
 
     <dependencies>
         <dependency>
-            <groupId>com.framework.agent</groupId>
+            <groupId>io.github.ranasl62</groupId>
             <artifactId>agc-spring-boot-autoconfigure</artifactId>
         </dependency>
     </dependencies>

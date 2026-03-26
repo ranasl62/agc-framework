@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.framework.agent</groupId>
+        <groupId>io.github.ranasl62</groupId>
         <artifactId>agc-framework</artifactId>
         <version>1.0.0</version>
     </parent>
@@ -13,20 +13,20 @@
     <artifactId>agc-api</artifactId>
     <name>AGC API (Agent Governance &amp; Control)</name>
     <description>
-        Optional REST module for AGC: POST /agent/execute and GET /audit/{traceId}. Part of com.framework.agent; pair with agc-spring-boot-starter.
+        Optional REST module for AGC: POST /agent/execute and GET /audit/{traceId}. Part of io.github.ranasl62; pair with agc-spring-boot-starter.
     </description>
 
     <dependencies>
         <dependency>
-            <groupId>com.framework.agent</groupId>
+            <groupId>io.github.ranasl62</groupId>
             <artifactId>agc-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.framework.agent</groupId>
+            <groupId>io.github.ranasl62</groupId>
             <artifactId>agc-orchestrator</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.framework.agent</groupId>
+            <groupId>io.github.ranasl62</groupId>
             <artifactId>agc-storage</artifactId>
         </dependency>
         <dependency>

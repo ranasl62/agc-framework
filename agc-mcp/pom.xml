@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.framework.agent</groupId>
+        <groupId>io.github.ranasl62</groupId>
         <artifactId>agc-framework</artifactId>
         <version>1.0.0</version>
     </parent>
@@ -16,19 +16,19 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.framework.agent</groupId>
+            <groupId>io.github.ranasl62</groupId>
             <artifactId>agc-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.framework.agent</groupId>
+            <groupId>io.github.ranasl62</groupId>
             <artifactId>agc-audit</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.framework.agent</groupId>
+            <groupId>io.github.ranasl62</groupId>
             <artifactId>agc-policy</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.framework.agent</groupId>
+            <groupId>io.github.ranasl62</groupId>
             <artifactId>agc-guardrail</artifactId>
         </dependency>
         <dependency>

@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.framework.agent</groupId>
+    <groupId>io.github.ranasl62</groupId>
     <artifactId>agc-framework</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
@@ -13,7 +13,7 @@
         Agent Governance &amp; Control (AGC): Spring Boot library for governed LLM and AI agent tool execution—ToolInvocationGateway,
         tool registry, RBAC-style policy, guardrails, append-only audit by traceId, optional REST (agc-api).
         Use cases: enterprise agents, compliance-oriented audit, safe tool calling on the JVM.
-        Maven: com.framework.agent:agc-spring-boot-starter. Search: agc-spring-boot-starter, LLM tool governance Java, Spring Boot agent policy.
+        Maven: io.github.ranasl62:agc-spring-boot-starter. Search: agc-spring-boot-starter, LLM tool governance Java, Spring Boot agent policy.
     </description>
     <url>https://github.com/ranasl62/agc-framework</url>
 
@@ -77,57 +77,57 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>com.framework.agent</groupId>
+                <groupId>io.github.ranasl62</groupId>
                 <artifactId>agc-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.framework.agent</groupId>
+                <groupId>io.github.ranasl62</groupId>
                 <artifactId>agc-storage</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.framework.agent</groupId>
+                <groupId>io.github.ranasl62</groupId>
                 <artifactId>agc-audit</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.framework.agent</groupId>
+                <groupId>io.github.ranasl62</groupId>
                 <artifactId>agc-policy</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.framework.agent</groupId>
+                <groupId>io.github.ranasl62</groupId>
                 <artifactId>agc-guardrail</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.framework.agent</groupId>
+                <groupId>io.github.ranasl62</groupId>
                 <artifactId>agc-mcp</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.framework.agent</groupId>
+                <groupId>io.github.ranasl62</groupId>
                 <artifactId>agc-orchestrator</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.framework.agent</groupId>
+                <groupId>io.github.ranasl62</groupId>
                 <artifactId>agc-observability</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.framework.agent</groupId>
+                <groupId>io.github.ranasl62</groupId>
                 <artifactId>agc-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.framework.agent</groupId>
+                <groupId>io.github.ranasl62</groupId>
                 <artifactId>agc-spring-boot-autoconfigure</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.framework.agent</groupId>
+                <groupId>io.github.ranasl62</groupId>
                 <artifactId>agc-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>

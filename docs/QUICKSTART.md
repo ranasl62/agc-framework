@@ -10,12 +10,12 @@ Dependencies below use **`1.0.0`** (release). For unreleased source builds, run 
 
 ```xml
 <dependency>
-  <groupId>com.framework.agent</groupId>
+  <groupId>io.github.ranasl62</groupId>
   <artifactId>agc-spring-boot-starter</artifactId>
   <version>1.0.0</version>
 </dependency>
 <dependency>
-  <groupId>com.framework.agent</groupId>
+  <groupId>io.github.ranasl62</groupId>
   <artifactId>agc-api</artifactId>
   <version>1.0.0</version>
 </dependency>

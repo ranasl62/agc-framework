@@ -10,7 +10,7 @@ This page is the **canonical reference** for what the project is called, **why i
 |--|--|
 | **Product name** | **Agent Governance & Control** |
 | **Short name** | **AGC** |
-| **Maven `groupId`** | `com.framework.agent` |
+| **Maven `groupId`** | `io.github.ranasl62` |
 | **Primary consumer artifact** | `agc-spring-boot-starter` |
 | **Optional REST module** | `agc-api` |
 | **Repository / homepage** | [github.com/ranasl62/agc-framework](https://github.com/ranasl62/agc-framework) (adjust if your fork is canonical) |
@@ -19,7 +19,7 @@ This page is the **canonical reference** for what the project is called, **why i
 
 ```xml
 <dependency>
-  <groupId>com.framework.agent</groupId>
+  <groupId>io.github.ranasl62</groupId>
   <artifactId>agc-spring-boot-starter</artifactId>
   <version>1.0.0</version>
 </dependency>
@@ -63,11 +63,11 @@ You may **not** need it for a one-off demo with a single hard-coded tool and no 
 
 Users often search by **groupId**, **artifactId**, or **words in the POM description**. After deployment, typical searches:
 
-- **By coordinates:** `g:com.framework.agent`  
+- **By coordinates:** `g:io.github.ranasl62`  
 - **By artifact:** `a:agc-spring-boot-starter`  
-- **Full coordinates:** `com.framework.agent:agc-spring-boot-starter`  
+- **Full coordinates:** `io.github.ranasl62:agc-spring-boot-starter`  
 
-Central search: [search.maven.org — `com.framework.agent`](https://search.maven.org/search?q=g:com.framework.agent)
+Central search: [search.maven.org — `io.github.ranasl62`](https://search.maven.org/search?q=g:io.github.ranasl62)
 
 ### GitHub (and other hosts)
 
@@ -122,7 +122,7 @@ You can use **both**: let Spring AI (for example) propose a tool name; your appl
 Summary:
 
 1. Reactor **release version** (currently **1.0.0** in this repo) on the tag you deploy.  
-2. **Sonatype** namespace for `com.framework.agent` verified.  
+2. **Sonatype** namespace for `io.github.ranasl62` verified.  
 3. **`settings.xml`** server **`central`** (Portal user token) + **GPG** signing.  
 4. **`mvn clean deploy -Prelease`** — demo/arch-tests **skip deploy**.  
 5. After Central sync, bump to **next SNAPSHOT** (e.g. `1.0.1-SNAPSHOT`) for continued development — see **RELEASING.md**.
@@ -133,7 +133,7 @@ Summary:
 
 Suggested citation (adapt version and year):
 
-> Agent Governance & Control (AGC). Spring Boot library for governed LLM tool execution, policy, guardrails, and audit. `com.framework.agent:agc-spring-boot-starter`. https://github.com/ranasl62/agc-framework
+> Agent Governance & Control (AGC). Spring Boot library for governed LLM tool execution, policy, guardrails, and audit. `io.github.ranasl62:agc-spring-boot-starter`. https://github.com/ranasl62/agc-framework
 
 ---
 

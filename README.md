@@ -1,7 +1,7 @@
 # Agent Governance & Control (AGC)
 
 [![CI](https://github.com/ranasl62/agc-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/ranasl62/agc-framework/actions/workflows/ci.yml)
-[![Maven Central](https://img.shields.io/maven-central/v/com.framework.agent/agc-spring-boot-starter?label=Maven%20Central)](https://search.maven.org/search?q=g:com.framework.agent)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.ranasl62/agc-spring-boot-starter?label=Maven%20Central)](https://search.maven.org/search?q=g:io.github.ranasl62)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 **AGC is a Spring Boot library that enforces governance for LLM tool execution**—policy, guardrails, registry checks, and an append-only audit trail—so teams can ship agents without silent bypasses or missing compliance signals.
@@ -11,7 +11,7 @@
 | | |
 |--|--|
 | **Official name** | **Agent Governance & Control** (**AGC**) |
-| **Maven `groupId`** | `com.framework.agent` |
+| **Maven `groupId`** | `io.github.ranasl62` |
 | **Main artifact** | `agc-spring-boot-starter` |
 | **Library guide (publish, keywords, why adopt)** | **[docs/LIBRARY.md](docs/LIBRARY.md)** |
 
@@ -19,9 +19,9 @@
 
 ## Find this project
 
-**Maven Central:** search [`g:com.framework.agent`](https://search.maven.org/search?q=g:com.framework.agent) or artifact [`agc-spring-boot-starter`](https://search.maven.org/search?q=a:agc-spring-boot-starter).
+**Maven Central:** search [`g:io.github.ranasl62`](https://search.maven.org/search?q=g:io.github.ranasl62) or artifact [`agc-spring-boot-starter`](https://search.maven.org/search?q=a:agc-spring-boot-starter).
 
-**Typical search keywords:** `AGC Spring Boot`, `LLM tool governance Java`, `agent tool audit`, `Spring Boot AI policy`, `ToolInvocationGateway`, `com.framework.agent`, `governed tool execution`, `MCP Java governance` (conceptual; AGC is gateway-centric).
+**Typical search keywords:** `AGC Spring Boot`, `LLM tool governance Java`, `agent tool audit`, `Spring Boot AI policy`, `ToolInvocationGateway`, `io.github.ranasl62`, `governed tool execution`, `MCP Java governance` (conceptual; AGC is gateway-centric).
 
 **GitHub topics (recommended for the repo):** `spring-boot`, `java`, `llm`, `ai-agents`, `tool-calling`, `governance`, `audit`, `policy`, `authorization`, `mcp`, `enterprise-ai`, `compliance`.
 
@@ -101,7 +101,7 @@ Tool name and event sequence appear on **`GET /audit/{traceId}`** (ordered by `s
 
 ```xml
 <dependency>
-  <groupId>com.framework.agent</groupId>
+  <groupId>io.github.ranasl62</groupId>
   <artifactId>agc-spring-boot-starter</artifactId>
   <version>1.0.0</version>
 </dependency>
@@ -111,7 +111,7 @@ Optional REST controllers:
 
 ```xml
 <dependency>
-  <groupId>com.framework.agent</groupId>
+  <groupId>io.github.ranasl62</groupId>
   <artifactId>agc-api</artifactId>
   <version>1.0.0</version>
 </dependency>
@@ -188,7 +188,7 @@ Open [http://localhost:8080/](http://localhost:8080/) — **Quick try** (allow /
 
 ```xml
 <dependency>
-  <groupId>com.framework.agent</groupId>
+  <groupId>io.github.ranasl62</groupId>
   <artifactId>agc-spring-boot-starter</artifactId>
   <version>1.0.0</version>
 </dependency>
